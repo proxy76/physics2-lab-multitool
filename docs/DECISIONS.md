@@ -86,3 +86,16 @@ When the rounded uncertainty ends in a significant zero left of the decimal poin
 ## D19. Coverage tests use the Student-t expectation
 
 An unweighted least-squares slope uncertainty estimated from n points has n − 2 degrees of freedom, so the fraction of trials within ±2σ is P(|t_{n−2}| < 2) (≈ 90 % for n = 7), not 95.4 %. The noisy golden tests therefore check that (i) the fraction inside ±2σ matches the Student-t expectation within the binomial noise of 1000 trials and (ii) the fraction inside ±t₀.₉₇₅·σ is ≥ 93 %. This is the honest-uncertainty check the brief asks for, stated precisely.
+
+## D20. Honest uncertainties next to the guide's s_a (Exp 5 and Exp 3)
+
+The 1000-trial coverage tests showed two places where the guide's unweighted least-squares σ (B.10) is not honest:
+
+- **Exp 5.** Poisson σ of the rates differs by ×10–100 between the nearest and farthest slots. B.10 assumes equal errors, so σ_Λ is under-estimated (≈ 67 % of trials within 2σ instead of ≈ 92 %). The pipeline also propagates the *known* counting σ (incl. the shared background, Cov(nᵢ,nⱼ) = σ_nb²) through the same unweighted estimator: `lambda1_count`, `lambda2_count` (95 % coverage verified).
+- **Exp 3.** The Rydberg-fit s_a ignores the calibration uncertainty, which is common to every λ_H (87 % coverage at t₀.₉₇₅). The pipeline adds σ_cal from cov(A,B) and reports `R_total = √(s_a² + σ_cal²)` and the fully propagated `R_prop` (95 % verified).
+
+The headline/conclusions table keeps the guide's value and s_a (what the guide asks for); a "honesty" warning appears when the complete σ exceeds s_a by > 30 %, with both numbers shown so the team can quote and defend them.
+
+## D21. Outlier statistic
+
+Outliers are flagged with **externally studentised residuals** (deleted-residual t). Internally studentised residuals are bounded by √(n − p) — with 7 points they can never exceed 2.24, so a 2.5 threshold would never fire.

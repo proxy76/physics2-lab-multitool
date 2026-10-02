@@ -38,7 +38,7 @@ class Fit:
     y: list
     yhat: list
     res: list
-    std_res: list  # internally studentised residuals r_i / (s·√(1−h_ii))
+    std_res: list  # externally studentised residuals (deleted-residual t statistic)
     leverage: list
     sums: dict = field(default_factory=dict)
     chi2: mpf | None = None
@@ -55,6 +55,26 @@ class Fit:
         """Standard uncertainty of the fitted line at x (confidence band, 1σ)."""
         v = x * x * self.s_a ** 2 + self.s_b ** 2 + 2 * x * self.cov
         return sqrt(v) if v > 0 else mpf(0)
+
+
+def _ext_student(res, lev, ssr, df):
+    """Externally studentised residuals t_i = r_i / (s_(i)·√(1−h_ii)), s_(i) from the fit without point i.
+
+    Unlike internal studentisation (bounded by √df), these are unbounded, so an outlier threshold such
+    as 2.5 can fire even with few points.
+    """
+    out = []
+    for r, h in zip(res, lev):
+        if df < 2 or h >= 1:
+            out.append(mpf(0))
+            continue
+        ssr_i = ssr - r * r / (1 - h)
+        if ssr_i <= 0:
+            out.append(mpf(0) if r == 0 else mpf(10) ** 6)
+            continue
+        s_i = sqrt(ssr_i / (df - 1))
+        out.append(r / (s_i * sqrt(1 - h)))
+    return out
 
 
 def _check(x, y, need: int):
@@ -96,7 +116,7 @@ def ols(x, y) -> Fit:
     r = sxy / sqrt(sxx * syy) if syy > 0 else mpf(1)
     R2 = 1 - ssr / syy if syy > 0 else mpf(1)
     lev = [mpf(1) / n + (xi - xm) ** 2 / sxx for xi in x]
-    std = [ri / (s * sqrt(1 - h)) if s > 0 and h < 1 else mpf(0) for ri, h in zip(res, lev)]
+    std = _ext_student(res, lev, ssr, df)
     sums = _sums(x, y)
     sums.update({"xm": xm, "ym": ym, "sxx_c": sxx, "sxy_c": sxy, "syy_c": syy})
     return Fit("ols", n, a, b, s_a, s_b, cov, df, ssr, s, r, R2, x, y, yhat, res, std, lev, sums)
@@ -123,7 +143,7 @@ def origin(x, y) -> Fit:
     syy = fsum(yi * yi for yi in y)
     R2 = 1 - ssr / syy if syy > 0 else mpf(1)  # uncentred R² (NIST NoInt convention)
     lev = [xi * xi / sxx for xi in x]
-    std = [ri / (s * sqrt(1 - h)) if s > 0 and h < 1 else mpf(0) for ri, h in zip(res, lev)]
+    std = _ext_student(res, lev, ssr, df)
     sums = _sums(x, y)
     return Fit("origin", n, a, mpf(0), s_a, mpf(0), mpf(0), df, ssr, s, None, R2, x, y, yhat, res, std, lev, sums)
 
@@ -175,6 +195,23 @@ def weighted(x, y, sigma, through_origin: bool = False) -> Fit:
     return f
 
 
+def sandwich_var(weights_fn_coeffs, cov_y) -> mpf:
+    """Var(Σ cᵢ yᵢ) = cᵀ·Cov(y)·c for a linear estimator with coefficients c (known data covariance)."""
+    c = weights_fn_coeffs
+    return fsum(c[i] * c[j] * cov_y[i][j] for i in range(len(c)) for j in range(len(c)) if cov_y[i][j] != 0)
+
+
+def slope_coeffs(x, origin: bool = False) -> list:
+    """Coefficients cᵢ with a = Σ cᵢ yᵢ for the unweighted slope (with or without intercept)."""
+    x = [mpf(v) for v in x]
+    if origin:
+        sxx = fsum(v * v for v in x)
+        return [v / sxx for v in x]
+    xm = fsum(x) / len(x)
+    sxx = fsum((v - xm) ** 2 for v in x)
+    return [(v - xm) / sxx for v in x]
+
+
 def inverse_predict(fit: Fit, y0, s_y0=0):
     """x₀ = (y₀ − b)/a with σ²(x₀) = [σ_y0² + s_b² + x₀²·s_a² + 2x₀·cov(a,b)] / a²."""
     if fit.a == 0:
@@ -209,8 +246,8 @@ def general(columns: list[list], y: list) -> dict:
 
 
 def outliers(fit: Fit, threshold) -> list[int]:
-    """Indices whose |standardised residual| exceeds ``threshold`` (default 2.5 in the UI)."""
-    if fit.n < 4:
+    """Indices whose |studentised residual| exceeds ``threshold`` (default 2.5 in the UI)."""
+    if fit.df < 2:
         return []
     return [i for i, z in enumerate(fit.std_res) if abs(z) > threshold]
 

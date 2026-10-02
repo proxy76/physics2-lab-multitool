@@ -18,6 +18,9 @@ from .rounding import full, round_report, tex_sig
 from .units import unit_latex
 
 
+TRANSPORT = {"digits": 30}  # raised to 48 during the dps-100 self-check
+
+
 def num(x) -> float:
     """Float for chart coordinates only (never used in the result path)."""
     return float(mpf(x))
@@ -37,13 +40,13 @@ class Result:
     # values -----------------------------------------------------------------
     def value(self, name: str, value, unc=None, unit: str = "", label: str = "", sig: int = 6, group: str | None = None):
         """Register a numeric result. ``unc`` may be None (then ``sig`` digits are shown)."""
-        entry = {"value": full(value), "unit": unit, "label": label or name}
+        entry = {"value": full(value, TRANSPORT["digits"]), "unit": unit, "label": label or name}
         if group:
             entry["group"] = group
         self._raw[name] = (mpf(value), None if unc is None else mpf(unc))
         if unc is not None and mpf(unc) > 0:
             r = round_report(value, unc, round_up=self.round_up)
-            entry["unc"] = full(unc)
+            entry["unc"] = full(unc, TRANSPORT["digits"])
             entry["rel"] = full(abs(mpf(unc) / mpf(value))) if mpf(value) != 0 else None
         else:
             r = round_report(value, None, plain_sig=sig)
