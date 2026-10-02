@@ -228,3 +228,12 @@ def test_guide_constants_reproduce_eq48():
     r = api.dispatch("exp4.analyze", {**golden.make("exp4"), "C_mode": "guide"}, "guide")
     assert r["ok"]
     assert r["result"]["values"]["C"]["value"].startswith("3.3")
+
+
+@pytest.mark.parametrize("exp", ["exp3", "exp4", "exp5", "exp6", "exp7"])
+def test_json_serialisable(exp):
+    import json
+
+    for params in (golden.examples()[exp], golden.make(exp)):
+        out = json.loads(api.dispatch_json(json.dumps({"id": "x", "tool": f"{exp}.analyze", "params": params, "options": {"selfcheck": True}})))
+        assert out["ok"], out.get("error")

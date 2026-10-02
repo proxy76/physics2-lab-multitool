@@ -1,0 +1,20 @@
+import katex from "katex";
+import "katex/dist/katex.min.css";
+import { memo } from "react";
+
+const cache = new Map<string, string>();
+
+function render(tex: string, display: boolean): string {
+  const key = (display ? "D" : "I") + tex;
+  let html = cache.get(key);
+  if (html === undefined) {
+    html = katex.renderToString(tex, { displayMode: display, throwOnError: false, strict: "ignore", output: "html" });
+    cache.set(key, html);
+  }
+  return html;
+}
+
+export const Tex = memo(function Tex({ tex, display = false, className }: { tex: string; display?: boolean; className?: string }) {
+  if (!tex) return null;
+  return <span className={className ?? (display ? "tex-block" : "tex")} dangerouslySetInnerHTML={{ __html: render(tex, display) }} />;
+});

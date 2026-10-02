@@ -1,0 +1,145 @@
+/* Design tokens. Three themes: dark (default, ink-blue), light (cool paper), darkroom (red on black for
+   night vision in Exp 4 / Exp 3). The memorable element is the millimetre-paper grid (--grid-*),
+   used only on plot surfaces and the active number field. */
+
+@import "@fontsource/atkinson-hyperlegible-next/400.css";
+@import "@fontsource/atkinson-hyperlegible-next/600.css";
+@import "@fontsource/atkinson-hyperlegible-next/700.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+
+:root {
+  --font-ui: "Atkinson Hyperlegible Next", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* type scale (1.2 minor third from 16px) */
+  --fs-xs: 0.8125rem;
+  --fs-sm: 0.9rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.2rem;
+  --fs-xl: 1.44rem;
+  --fs-2xl: 1.728rem;
+  --fs-num: 1.6rem; /* typed numbers */
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+
+  --r-input: 6px;
+  --r-card: 12px;
+  --r-pill: 999px;
+  --tap: 48px;
+
+  --nav-h: 64px;
+  --head-h: 52px;
+}
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #13202e;
+  --surface: #1b2b3c;
+  --surface-2: #233649;
+  --line: #34495f;
+  --text: #e8eef3;
+  --muted: #a3b3c2;
+  --accent: #e8a24a; /* millimetre-paper amber, also the LED readouts */
+  --accent-ink: #1a1206;
+  --accent-soft: rgba(232, 162, 74, 0.14);
+  --good: #7bd88f;
+  --warn: #f2c14e;
+  --bad: #ff7b6b;
+  --info: #7cc4ff;
+  --op: #4fc3d9;
+  --rd: #b39df2;
+  --an: #7bd88f;
+  --hazard-bg: #ffd23f;
+  --hazard-ink: #15120a;
+  --grid-minor: rgba(232, 162, 74, 0.09);
+  --grid-major: rgba(232, 162, 74, 0.22);
+  --plot-bg: #16273a;
+  --series-1: #e8a24a;
+  --series-2: #4fc3d9;
+  --series-3: #b39df2;
+  --series-4: #7bd88f;
+  --fit: #e8eef3;
+  --shadow: 0 6px 24px rgba(3, 9, 16, 0.45);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f3f6f9;
+  --surface: #ffffff;
+  --surface-2: #e9eef3;
+  --line: #c6d1db;
+  --text: #0f2233;
+  --muted: #4b5f72;
+  --accent: #b05a12;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(176, 90, 18, 0.1);
+  --good: #1d7a36;
+  --warn: #8a6100;
+  --bad: #b3261e;
+  --info: #1764a8;
+  --op: #0a7c91;
+  --rd: #6a4fc4;
+  --an: #1d7a36;
+  --hazard-bg: #ffd23f;
+  --hazard-ink: #15120a;
+  --grid-minor: rgba(196, 98, 22, 0.1);
+  --grid-major: rgba(196, 98, 22, 0.26);
+  --plot-bg: #fffdf9;
+  --series-1: #b05a12;
+  --series-2: #0a7c91;
+  --series-3: #6a4fc4;
+  --series-4: #1d7a36;
+  --fit: #0f2233;
+  --shadow: 0 6px 24px rgba(15, 34, 51, 0.12);
+}
+
+/* Dark-room: red on black keeps night vision; everything dim, nothing white. */
+[data-theme="darkroom"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --surface: #120404;
+  --surface-2: #1d0707;
+  --line: #3d1210;
+  --text: #d9493a;
+  --muted: #9a3328;
+  --accent: #ff5a3c;
+  --accent-ink: #000000;
+  --accent-soft: rgba(255, 90, 60, 0.12);
+  --good: #d9493a;
+  --warn: #ff7a4a;
+  --bad: #ff3b2f;
+  --info: #c8463a;
+  --op: #e0573f;
+  --rd: #c74434;
+  --an: #f06a4a;
+  --hazard-bg: #4a0d07;
+  --hazard-ink: #ff6a4f;
+  --grid-minor: rgba(255, 90, 60, 0.07);
+  --grid-major: rgba(255, 90, 60, 0.16);
+  --plot-bg: #080101;
+  --series-1: #ff5a3c;
+  --series-2: #c74434;
+  --series-3: #a33a2c;
+  --series-4: #e0573f;
+  --fit: #d9493a;
+  --shadow: none;
+}
+
+/* millimetre paper: 1 mm minor, 10 mm major — used sparingly */
+.mm-paper {
+  background-color: var(--plot-bg);
+  background-image:
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+  background-size: 40px 40px, 40px 40px, 8px 8px, 8px 8px;
+  background-position: -1px -1px;
+}

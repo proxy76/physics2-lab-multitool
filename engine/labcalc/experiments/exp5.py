@@ -226,7 +226,6 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
             res.value("adv.lambda1_weighted_chi2", fw.chi2_red, None, "", "χ²_red of weighted Method I", sig=3, group="advanced")
         off = _offset_fit(use, D)
         if off:
-            adv["offset"] = off
             res.value("adv.delta", off["delta"], off["s_delta"], "cm", "effective distance offset δ (r_eff = r + δ)", group="advanced")
             res.value("adv.lambda_offset", off["K"] / eS, off["s_K"] / eS, "Bq", "Λ with fitted offset δ (discussion only)", group="advanced")
     yield_ = mpf(CS137["I_gamma"])
