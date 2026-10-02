@@ -74,3 +74,15 @@ Pure-Python floats with a seeded `random.Random` (default 2×10⁵ samples in th
 ## D16. Frontend stack
 
 Vite + React + TypeScript, plain CSS with design tokens (no Tailwind: the token system is small and hand-tuned for the dark-room theme), KaTeX for formulas, idb-keyval for IndexedDB autosave, lz-string for share links, `qrcode` for QR codes, `vite-plugin-pwa` (Workbox) for offline precaching.
+
+## D17. Brief erratum in the rounding table
+
+The brief's §4.2 table pairs u = 0.4×10⁻³⁵ with the report "(6.626 ± 0.004)×10⁻³⁴". But 0.4×10⁻³⁵ = 4×10⁻³⁶, which rounds the value to (6.63 ± 0.04)×10⁻³⁴; "(6.626 ± 0.004)×10⁻³⁴" needs u = 4×10⁻³⁷. Both readings are unit-tested (`tests/test_rounding.py`) and the rule itself is unchanged.
+
+## D18. Ambiguous trailing zeros
+
+When the rounded uncertainty ends in a significant zero left of the decimal point (e.g. 19.6 → "20", two significant digits), the report switches to scientific notation: 534.21 ± 19.6 → (5.34 ± 0.20)×10². Plain notation is used only when it is unambiguous.
+
+## D19. Coverage tests use the Student-t expectation
+
+An unweighted least-squares slope uncertainty estimated from n points has n − 2 degrees of freedom, so the fraction of trials within ±2σ is P(|t_{n−2}| < 2) (≈ 90 % for n = 7), not 95.4 %. The noisy golden tests therefore check that (i) the fraction inside ±2σ matches the Student-t expectation within the binomial noise of 1000 trials and (ii) the fraction inside ±t₀.₉₇₅·σ is ≥ 93 %. This is the honest-uncertainty check the brief asks for, stated precisely.
