@@ -159,7 +159,7 @@ export function RunTab({ def, session, data, setData, analysis }: { def: Experim
     <div className="run">
       <div className="run-top">
         <div className="progress" role="progressbar" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={i + 1} aria-label="Run progress">
-          <span style={{ width: `${((i + 1) / steps.length) * 100}%` }} />
+          <span style={{ transform: `scaleX(${(i + 1) / steps.length})` }} />
         </div>
         <span className="step-count num">Step {i + 1} of {steps.length}</span>
         <button type="button" className="btn small ghost" onClick={() => setCheat(true)}>Cheat card</button>

@@ -16,6 +16,7 @@ The design brief is `LAB_COMPANION_AGENT_BRIEF.md`. The working documents are in
 | `docs/ERRATA.md` | Where the guide is wrong, and what the app does instead (also shown in-app as "Guide notes") |
 | `docs/DECISIONS.md` | Design decisions D1–D22, with the alternatives considered |
 | `docs/SOURCES.md` | CODATA 2022, NIST XCOM/ASD/StRD and NNDC values, with URLs and access dates |
+| `docs/STATUS.md` | Build status, test results and next steps (start here when resuming work) |
 
 ## Repository layout
 
@@ -97,7 +98,7 @@ Alternatives:
 - **nginx.** Use `deploy/nginx.conf` with certbot. It has the same headers and caching as the Caddyfile.
 - **Private site.** Uncomment the `basic_auth` block in the Caddyfile, or `auth_basic` in the nginx config.
 
-Caching: `/assets/*` (hashed) is immutable. Everything else is revalidated (`no-cache`), so a deploy is picked up immediately. `.wasm` is served as `application/wasm`.
+Caching: `/assets/*` (hashed) is immutable. Everything else is revalidated (`no-cache`), so a deploy is picked up immediately. `.wasm` is served as `application/wasm`. `robots.txt` disallows indexing (private team site).
 
 ## Before the first lab
 

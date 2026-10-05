@@ -72,7 +72,7 @@ function Header({ route, offlineReady, needRefresh, update }: { route: string[];
 
 export function App() {
   const route = useRoute();
-  const { offlineReady: [offlineReady], needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW({ immediate: true });
+  const { offlineReady: [offlineReady], needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW({ immediate: false }); // registers on "load", after the first paint
   const lastRoute = useAppState((s) => s.lastRoute);
 
   useEffect(() => {

@@ -8,10 +8,17 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <title>Lab Companion</title>
-    <script src="/theme.js"></script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- First paint before the app script arrives (slow lab Wi-Fi). Same markup and classes as the
+         app's header and home intro; React replaces it on start. Keep in sync with Home.tsx. -->
+    <div id="root"><div class="app">
+      <header class="app-header"><a href="#/" class="brand" aria-label="Lab Companion home"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">Lab Companion</span></a></header>
+      <main id="main" class="app-main"><div class="page"><section class="home-intro">
+        <h1>Physics 2 lab</h1>
+        <p class="lede">Five experiments in your order. Each has a 60-second brief, a step-by-step run guide split by role, data entry where the numbers appear, the analysis exactly as the guide asks, and the answer key.</p>
+      </section></div></main>
+    </div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

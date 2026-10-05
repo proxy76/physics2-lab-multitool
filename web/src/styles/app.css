@@ -403,7 +403,7 @@ sub { font-size: 0.72em; line-height: 0; vertical-align: -0.25em; }
 /* ------------------------------------------------------------------ run */
 .run-top { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-3); flex-wrap: wrap; }
 .progress { flex: 1 1 140px; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
-.progress span { display: block; height: 100%; background: var(--accent); transition: width 0.25s; }
+.progress span { display: block; height: 100%; background: var(--accent); transform-origin: left; transition: transform 0.25s; }
 .step-count { color: var(--muted); font-size: var(--fs-sm); }
 .run-grid { display: grid; gap: var(--sp-4); }
 .run-side { display: none; }
@@ -573,6 +573,9 @@ fieldset { min-width: 0; }
 .step-list { padding-left: 1.4em; }
 .step-list li { padding: var(--sp-2) 0 var(--sp-3); border-bottom: 1px solid var(--line); }
 .tex-block { display: block; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+/* KaTeX still loading (first visit only): hold the space so nothing jumps */
+.tex-block.tex-pending { min-height: 2.6em; }
+.tex.tex-pending { display: inline-block; min-width: 2ch; }
 .step-result { color: var(--accent); }
 .selfcheck { font-size: var(--fs-sm); }
 .selfcheck.ok { color: var(--good); }
