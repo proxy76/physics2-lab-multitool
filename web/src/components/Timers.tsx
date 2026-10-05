@@ -38,7 +38,7 @@ export function TimerDock() {
 export function TimerButton({ seconds, label }: { seconds: number; label: string }) {
   return (
     <button type="button" className="btn timer-btn" onClick={() => startCountdown(seconds, label)}>
-      Start {fmt(seconds * 1000)} timer
+      Start {seconds} s timer{seconds >= 300 && seconds % 60 === 0 ? ` (${seconds / 60} min)` : ""}
     </button>
   );
 }

@@ -91,11 +91,23 @@ test("no page scrolls sideways on a phone", async ({ page }) => {
   const pages = ["#/", "#/calc", "#/settings", ...EXPS.flatMap((e) => ["brief", "run", "data", "results", "questions"].map((t) => `#/exp/${e}/${t}`)),
     ...["stats", "counting", "linfit", "quick", "propagate", "graphical", "report", "units", "decay"].map((t) => `#/calc/${t}`), ...EXPS.map((e) => `#/answers/${e}`)];
   const wide: string[] = [];
+  const check = async (where: string) => {
+    const [sw, cw] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+    if (sw > cw) wide.push(`${where} (${sw} > ${cw})`);
+  };
   for (const h of pages) {
     await page.goto(h);
     await page.waitForTimeout(h.includes("results") || h.includes("data") ? 800 : 150);
-    const [sw, cw] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
-    if (sw > cw) wide.push(`${h} (${sw} > ${cw})`);
+    await check(h);
+    // every Run step: live tables and plots appear only on some of them
+    if (h.endsWith("/run")) {
+      const total = Number((await page.locator(".step-count").textContent())!.match(/of (\d+)/)![1]);
+      for (let i = 2; i <= total; i++) {
+        await page.getByRole("button", { name: "Next", exact: true }).click();
+        await page.waitForTimeout(300);
+        await check(`${h} step ${i}`);
+      }
+    }
   }
   expect(wide).toEqual([]);
 });

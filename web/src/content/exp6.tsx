@@ -102,7 +102,7 @@ export const exp6: ExperimentDef = {
       id: "zero", role: ["OP", "RD", "AN"], title: "Professor places the source; measure with no absorber (x = 0)",
       timer: { seconds: 120, label: "Spectrum 120 s" },
       see: "A sharp photopeak on the right and the broad Compton continuum on the left (Fig. 6.3).",
-      how: "Read the photopeak as a triangle (Fig. 6.4): left foot channel L (A), right foot channel R (B), height H above the baseline (C). Area = ½(R − L)·H. Use the same convention for every spectrum — consistency matters more than perfection.",
+      how: "Read the photopeak as a triangle (Fig. 6.4): left foot channel L (A), right foot channel R (B), height H above the baseline (C). Area = ½(R − L)·H. Use the same convention for every spectrum — consistency matters more than perfection.\n\nThis x = 0 spectrum is used for all three materials. If you re-measure x = 0 later (to check for drift), enter it as a row of that material's table; that material then uses its own.",
       entry: { kind: "fields", fields: [{ path: "zero.L", label: "L (left foot)", unit: "ch" }, { path: "zero.R", label: "R (right foot)", unit: "ch" }, { path: "zero.H", label: "H (height)", unit: "counts" }, { path: "zero.t", label: "t (empty = default)", unit: "s" }] },
     },
     {

@@ -11,6 +11,7 @@
     "test": "vitest run",
     "e2e": "playwright test",
     "screens": "node tests/screens.mjs",
+    "walkthrough": "node tests/walkthrough.mjs",
     "typecheck": "tsc -p . --noEmit",
     "test:pyodide": "node scripts/fetch-py.mjs && node tests/pyodide-smoke.mjs"
   },

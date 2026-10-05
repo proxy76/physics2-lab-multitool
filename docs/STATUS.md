@@ -10,7 +10,7 @@ Brief milestones M0–M4 are complete, and most of M5 (device QA) is done. Every
 |---|---|
 | Engine (`engine/`) | Exp 3–7 pipelines, G1–G8 tools. Tests passing: fast suite (`-m "not slow"`), slow 1000-trial coverage tests (`-m slow`), Pyodide smoke test (`npm run test:pyodide`). |
 | Web app (`web/`) | All screens built. Visual QA done on phone screenshots (dark theme for all screens, plus dark-room and light). |
-| Unit tests | Vitest suite, about 53 tests (`npm test`). Includes a check that every guide/answer formula compiles in KaTeX. |
+| Unit tests | Vitest suite, 55 tests (`npm test`). Includes a check that every guide/answer formula compiles in KaTeX. |
 | e2e | Playwright suite, 24 tests (12 per phone project; `npm run build && npm run e2e`), all passing. Covers offline mode, persistence, share link, Run-screen entry, overflow, tap targets, plot export and the CSP. It also passes against the real Caddy config (`BASE_URL=http://localhost:8088/`), and twice over with `--repeat-each 2` (48/48). The airplane-mode test needs up to about 2.5 min under parallel load, so it has its own 4-minute budget. |
 | Deploy | `deploy/Caddyfile` (validated with Caddy 2.11.7), `nginx.conf`, `Dockerfile`, `deploy.sh setup` / `deploy.sh`. The Docker image has **not** been built locally (Docker Desktop was not running). CI builds it. |
 | CI | `.github/workflows/ci.yml` (engine on 3.12 and 3.14; web unit/build/Pyodide/e2e on preview and Caddy; Docker build and smoke test). It has **never run**: the repo has not been pushed since it was added. |
@@ -27,11 +27,17 @@ Brief milestones M0–M4 are complete, and most of M5 (device QA) is done. Every
 - Startup order: a static first-paint shell in `index.html`, the engine warms on idle, and the service worker registers on `load`.
 - The CSP moved the theme bootstrap out of `index.html`. The theme is now applied at the top of `main.tsx`.
 - 2026-10-06: the suspected e2e regression was a test time budget, not an app bug: the offline result was on screen when the 120 s timeout hit under load. Exp 4 labels and plots now use D₁/D₂ and d₁/d₂.
+- 2026-10-06, step-by-step walk-through of all 43 Run steps and 5 cheat cards (emulated phone), fixes:
+  - Exp 7 step 7 scrolled sideways (its live table widened a grid column). All single-column grids now use `minmax(0, 1fr)`, and the e2e overflow test now checks every Run step.
+  - Step titles, safety, "You should see", "If" and "Meanwhile" text, verify items and cheat cards render subscripts and formatting (`N_b` → N<sub>b</sub>).
+  - Timer buttons are labelled in seconds, as the guide and the counters are ("Start 600 s timer (10 min)", not "10:00").
+  - "How" texts that mix a paragraph, a list and a closing line render as a real list (Exp 7 A–E).
+  - Exp 6: example data fills the shared x = 0 spectrum, and the step explains how it is reused for all three materials.
 
 ## Next steps
 
 1. **Push**, then check the first CI run, especially the Docker job and the Caddy e2e step (`git push origin main`).
-2. **Final walk-through** (brief §11): go through each experiment's Run guide as a first-time student, on a real phone, using the example data. Fix anything confusing. Not done yet.
+2. **Final walk-through on a real phone** (brief §11). The emulated-phone pass is done: `npm run walkthrough` screenshots every Run step with "How" open and every cheat card, and each was reviewed. What is left is the hands-on version: a real phone, one-handed, ideally in a dim room (Exp 4 dark-room theme).
 3. Deploy to the VM: `DEPLOY_HOST=… LAB_DOMAIN=… deploy/deploy.sh setup`, then `deploy/deploy.sh`. On two phones, check that airplane mode and the QR transfer work.
 4. Optional polish:
    - Example datasets occasionally show a legitimate 2.5–8σ outlier flag (Exp 3, 4, 6, 7). Decide whether to keep them as demos.

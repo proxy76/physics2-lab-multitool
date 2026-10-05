@@ -292,7 +292,7 @@ sub { font-size: 0.72em; line-height: 0; vertical-align: -0.25em; }
 /* ------------------------------------------------------------------ home */
 .home-intro { margin-bottom: var(--sp-5); }
 .home-intro h1 { font-size: 2.2rem; }
-.exp-cards { display: grid; gap: var(--sp-3); margin-bottom: var(--sp-5); }
+.exp-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-5); }
 @media (min-width: 700px) { .exp-cards { grid-template-columns: repeat(2, 1fr); } }
 .exp-card {
   position: relative;
@@ -405,7 +405,7 @@ sub { font-size: 0.72em; line-height: 0; vertical-align: -0.25em; }
 .progress { flex: 1 1 140px; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
 .progress span { display: block; height: 100%; background: var(--accent); transform-origin: left; transition: transform 0.25s; }
 .step-count { color: var(--muted); font-size: var(--fs-sm); }
-.run-grid { display: grid; gap: var(--sp-4); }
+.run-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
 .run-side { display: none; }
 @media (min-width: 900px) {
   .run-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
@@ -495,6 +495,11 @@ sub { font-size: 0.72em; line-height: 0; vertical-align: -0.25em; }
 .chip.add { border-style: dashed; }
 .row-entry { margin: var(--sp-4) 0; display: grid; gap: var(--sp-3); }
 .live-pane { display: grid; gap: var(--sp-3); }
+/* Single-column grids: an implicit "auto" column grows to its widest child (a table, a chip row)
+   and the whole page then scrolls sideways on a phone. minmax(0, 1fr) keeps them to the screen. */
+.roles, .session-body, .share-box, .expected, .entry-fields, .row-entry, .live-pane, .dtable, .warnings, .tool-list {
+  grid-template-columns: minmax(0, 1fr);
+}
 .live-wait { padding: var(--sp-4); border: 1px dashed var(--line); border-radius: var(--r-card); }
 .run-live-mobile { margin-top: var(--sp-4); }
 

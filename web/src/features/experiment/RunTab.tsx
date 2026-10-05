@@ -4,7 +4,7 @@ import { Field } from "../../components/Field";
 import { GuideNote } from "../../components/GuideNote";
 import { Plot } from "../../components/Plot";
 import { ValueLine, Warnings } from "../../components/ResultView";
-import { Rich } from "../../components/Rich";
+import { Inline, Rich } from "../../components/Rich";
 import { TimerButton } from "../../components/Timers";
 import type { Entry, ExperimentDef, RunStep } from "../../content/types";
 import type { Analysis } from "../../lib/engine";
@@ -150,7 +150,7 @@ export function RunTab({ def, session, data, setData, analysis }: { def: Experim
           <h2>Cheat card</h2>
           <button type="button" className="btn" onClick={() => setCheat(false)}>Back to steps</button>
         </div>
-        <ol className="cheat-list">{def.cheat.map((c) => <li key={c}>{c}</li>)}</ol>
+        <ol className="cheat-list">{def.cheat.map((c) => <li key={c}><Inline text={c} /></li>)}</ol>
         <div className="hazard"><ul>{def.brief.safety.map((s) => <li key={s}>{s}</li>)}</ul></div>
       </div>
     );
@@ -182,15 +182,15 @@ export function RunTab({ def, session, data, setData, analysis }: { def: Experim
             {step.optional && <span className="tag">optional</span>}
             {!mine && <span className="tag">not your role</span>}
           </header>
-          <h2 className="step-title">{step.title}</h2>
-          {step.safety && <p className="hazard inline-hazard">{step.safety}</p>}
+          <h2 className="step-title"><Inline text={step.title} /></h2>
+          {step.safety && <p className="hazard inline-hazard"><Inline text={step.safety} /></p>}
           {step.how && (
             <div className="how">
               <button type="button" className="disclosure" aria-expanded={howOpen} onClick={() => setHowOpen(!howOpen)}>How</button>
               {howOpen && <Rich text={step.how} />}
             </div>
           )}
-          {step.see && <p className="see"><span className="see-label">You should see</span> {step.see}</p>}
+          {step.see && <p className="see"><span className="see-label">You should see</span> <Inline text={step.see} /></p>}
           {(step.timer || step.stopwatch) && (
             <div className="btn-row">
               {step.timer && <TimerButton seconds={step.timer.seconds} label={step.timer.label} />}
@@ -198,8 +198,8 @@ export function RunTab({ def, session, data, setData, analysis }: { def: Experim
             </div>
           )}
           {step.entry && <EntryView def={def} entry={step.entry} data={data} setData={setData} analysis={analysis} />}
-          {step.decision && <p className="decision"><span className="decision-label">If</span> {step.decision.replace(/^If /, "")}</p>}
-          {step.meanwhile && <p className="meanwhile"><span className="meanwhile-label">Meanwhile</span> {step.meanwhile}</p>}
+          {step.decision && <p className="decision"><span className="decision-label">If</span> <Inline text={step.decision.replace(/^If /, "")} /></p>}
+          {step.meanwhile && <p className="meanwhile"><span className="meanwhile-label">Meanwhile</span> <Inline text={step.meanwhile} /></p>}
           {step.verify && (
             <fieldset className="verify">
               <legend>Verify in lab (not confirmed from the guide or online)</legend>
@@ -208,7 +208,7 @@ export function RunTab({ def, session, data, setData, analysis }: { def: Experim
                 return (
                   <label key={key} className="check">
                     <input type="checkbox" checked={!!session.checks[key]} onChange={(e) => updateSession(session.id, (s) => ({ ...s, checks: { ...s.checks, [key]: e.target.checked } }))} />
-                    <span>{v}</span>
+                    <span><Inline text={v} /></span>
                   </label>
                 );
               })}

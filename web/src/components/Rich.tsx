@@ -68,13 +68,19 @@ export function Rich({ text, className }: { text: string; className?: string }) 
         if (lines.every((l) => /^\s*\d+\. /.test(l)))
           return <ol key={k}>{lines.map((l, i) => <li key={i}>{inline(l.replace(/^\s*\d+\. /, ""), `${k}.${i}`)}</li>)}</ol>;
         if (trimmed.startsWith("> ")) return <p key={k} className="callout">{inline(trimmed.replace(/^> /, ""))}</p>;
-        // mixed block: paragraph lines followed by bullets
-        const firstBullet = lines.findIndex((l) => /^\s*- /.test(l));
-        if (firstBullet > 0 && lines.slice(firstBullet).every((l) => /^\s*- /.test(l)))
+        // mixed block: runs of paragraph lines and "- " bullets in any order
+        const runs: { bullet: boolean; lines: string[] }[] = [];
+        for (const l of lines) {
+          const bullet = /^\s*- /.test(l);
+          if (runs.length && runs[runs.length - 1].bullet === bullet) runs[runs.length - 1].lines.push(l);
+          else runs.push({ bullet, lines: [l] });
+        }
+        if (runs.length > 1)
           return (
             <Fragment key={k}>
-              <p>{inline(lines.slice(0, firstBullet).join(" "))}</p>
-              <ul>{lines.slice(firstBullet).map((l, i) => <li key={i}>{inline(l.replace(/^\s*- /, ""))}</li>)}</ul>
+              {runs.map((r, j) => r.bullet
+                ? <ul key={j}>{r.lines.map((l, i) => <li key={i}>{inline(l.replace(/^\s*- /, ""), `${k}.${j}.${i}`)}</li>)}</ul>
+                : <p key={j}>{inline(r.lines.join(" "), `${k}.${j}`)}</p>)}
             </Fragment>
           );
         return <p key={k}>{inline(lines.join(" "), `${k}`)}</p>;

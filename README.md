@@ -59,6 +59,7 @@ The browser runs the same `labcalc` sources: `npm run dev` and `npm run build` z
 | `npm run test:pyodide` | The engine inside the real Pyodide runtime, including the lazy SymPy load |
 | `npm run build && npm run e2e` | Playwright on two phone viewports: offline after one load, autosave across reload and tab close, share link to a second phone, entry from the Run screen, headline results for all five experiments, no sideways scrolling, 48 px targets, plot export, and the production Content-Security-Policy |
 | `npm run screens` | Screenshots of every screen in each theme, for visual review (needs `npm run preview` running) |
+| `npm run walkthrough` | Every Run step of every experiment as a phone shows it, with "How" open, plus the cheat cards (needs `npm run preview` running) |
 
 To run the e2e suite against another server (for example the real Caddy config), set `BASE_URL=http://localhost:8088/`.
 
