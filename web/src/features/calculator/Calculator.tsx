@@ -73,7 +73,12 @@ const TOOLS: Tool[] = [
       { key: "mc", label: "Monte Carlo cross-check", options: [{ value: "", label: "Off" }, { value: "1", label: "On (2×10⁵ samples)" }] }],
     defaults: { expr: "", unit: "", mc: "" },
     custom: "propagate",
-    build: (v, e) => ({ expr: v.expr, unit: v.unit, mc: !!v.mc, mc_n: 200000, variables: e.vars, corr: e.corr }),
+    build: (v, e) => {
+      // a variable row left completely empty is not part of the problem (the form starts with x and y)
+      const keep = e.vars.map((x, i) => [x, i] as const).filter(([x]) => x.value.trim() || x.sigma.trim());
+      return { expr: v.expr, unit: v.unit, mc: !!v.mc, mc_n: 200000, variables: keep.map(([x]) => x),
+        corr: e.corr.length ? keep.map(([, i]) => keep.map(([, j]) => e.corr[i]?.[j] ?? "")) : [] };
+    },
   },
   {
     id: "graphical", code: "G5", title: "Graphical method", blurb: "Slope from two points on your drawn line, max/min slopes, and A4 millimetre-paper scales.", engine: "graphical",

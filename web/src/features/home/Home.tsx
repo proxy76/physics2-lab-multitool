@@ -20,7 +20,7 @@ function Card({ def, index, next }: { def: ExperimentDef; index: number; next: b
   const st = useAppState((s) => statusOf(def, s));
   return (
     <a className={`exp-card${next ? " next" : ""}`} href={`#/exp/${def.id}`} data-status={st}>
-      <span className="exp-order" aria-label={`Session ${index + 1} of 5`}>{index + 1}</span>
+      <span className="exp-order" aria-label={`Lab ${index + 1} of 5`}>{index + 1}</span>
       <span className="exp-num">Exp. {def.n}</span>
       <span className="exp-title">{def.title}</span>
       <span className="exp-status"><span className="status-dot" aria-hidden="true" />{st}</span>
