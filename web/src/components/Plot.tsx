@@ -1,7 +1,8 @@
 // Purpose-built SVG plot (decision D3): error bars, fit lines, highlighted outliers, a residual panel,
 // and report-ready export (same renderer, print palette, fixed size).
 import { useEffect, useMemo, useRef, useState } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+import { flushSync } from "react-dom";
+import { createRoot } from "react-dom/client";
 import type { Plot as PlotData } from "../lib/engineTypes";
 
 export interface Palette {
@@ -280,8 +281,14 @@ function findPoint(plot: PlotData, id: string) {
   return null;
 }
 
+// Rendered into a detached node with the client renderer we already ship (react-dom/server
+// would add ~200 kB to the bundle for this one button).
 export function plotSvgString(plot: PlotData, width = 900): string {
-  const body = renderToStaticMarkup(<PlotSvg plot={plot} width={width} palette={PRINT} />);
+  const host = document.createElement("div");
+  const root = createRoot(host);
+  flushSync(() => root.render(<PlotSvg plot={plot} width={width} palette={PRINT} />));
+  const body = host.innerHTML;
+  root.unmount();
   return `<?xml version="1.0" encoding="UTF-8"?>\n${body.replace("<svg", `<svg data-title="${plot.title.replace(/"/g, "'")}"`)}`;
 }
 

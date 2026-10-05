@@ -113,3 +113,17 @@ test("Run-screen controls are at least 48 px tall", async ({ page }) => {
     if (box) expect(box.height, await targets.nth(i).evaluate((el) => el.outerHTML.slice(0, 80))).toBeGreaterThanOrEqual(48);
   }
 });
+
+test("plots export as report-ready SVG and PNG", async ({ page }) => {
+  await loadExample(page, "6");
+  await page.goto("#/exp/6/results");
+  const fig = page.locator("figure.plot").first();
+  await expect(fig.locator("svg")).toBeVisible();
+  const [svg] = await Promise.all([page.waitForEvent("download"), fig.getByRole("button", { name: "SVG" }).click()]);
+  expect(svg.suggestedFilename()).toMatch(/\.svg$/);
+  const text = await (await svg.createReadStream()).toArray().then((c) => Buffer.concat(c).toString("utf8"));
+  expect(text).toContain("<svg");
+  expect(text).toContain("x (cm)"); // axis title with unit
+  const [png] = await Promise.all([page.waitForEvent("download"), fig.getByRole("button", { name: "PNG" }).click()]);
+  expect(png.suggestedFilename()).toMatch(/\.png$/);
+});
