@@ -79,6 +79,7 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
     concl = {}
     plot_series = []
     for ring, ref_key in (("D1", "d1"), ("D2", "d2")):
+        sub = "₁" if ring == "D1" else "₂"  # D₁/d₁ in labels and plots (SVG text cannot use <sub>)
         use = [p for p in pts if p[ring] and not p["excluded"]]
         if len(use) < 3:
             res.info("need_rows", f"Ring {ring[1]}: at least 3 voltages are needed for the fit (≥ 5 recommended).")
@@ -90,35 +91,35 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
         fit_values(res, f"{ref_key}.fit", f, "m·V^½", "m", group=f"ring {ring[1]} fit")
         kk, sk = f.a, f.s_a
         d, sd = C / kk, C / kk * sk / kk
-        res.value(ref_key, d, sd, "m", f"d{ring[1]} (least squares)", group="results")
-        res.steps_from(linfit.steps(f, "U^(−1/2) (V^(−1/2))", f"{ring} (m)"), f"Ring {ring[1]}")
+        res.value(ref_key, d, sd, "m", f"d{sub} (least squares)", group="results")
+        res.steps_from(linfit.steps(f, "U^(−1/2) (V^(−1/2))", f"D{sub} (m)"), f"Ring {ring[1]}")
         res.step(f"Ring {ring[1]}: lattice spacing", r"d=\frac{C}{k},\quad \sigma_d=d\,\frac{s_k}{k}",
                  rf"d=\frac{{{t(C)}}}{{{t(kk)}}}", rf"d_{ring[1]}={t(d)}\pm{t(sd, 3)}\ \mathrm{{m}}")
         zb = abs(f.b) / f.s_b if f.s_b > 0 else None
         if zb is not None and zb > 2:
             res.info("intercept", f"Ring {ring[1]}: intercept {fmt_sig(f.b * 100, 3)} cm differs from 0 by {fmt_sig(zb, 2)} σ (eq. 4.8 predicts 0; systematic edge/parallax offset?).")
         fo = linfit.origin([p["x"] for p in use], [p[ring] for p in use])
-        res.value(f"adv.{ref_key}_origin", C / fo.a, C / fo.a * fo.s_a / fo.a, "m", f"d{ring[1]} from fit through the origin", group="advanced")
+        res.value(f"adv.{ref_key}_origin", C / fo.a, C / fo.a * fo.s_a / fo.a, "m", f"d{sub} from fit through the origin", group="advanced")
         # Q7: U = (C²/d²)·D⁻²
         fq = linfit.ols([1 / p[ring] ** 2 for p in use], [p["U"] for p in use])
         m, sm = fq.a, fq.s_a
         if m > 0:
             dq = C / sqrt(m)
-            res.value(f"adv.{ref_key}_q7", dq, dq * sm / (2 * m), "m", f"d{ring[1]} from Q7 linearisation U vs D⁻² (d = C/√m)", group="advanced")
+            res.value(f"adv.{ref_key}_q7", dq, dq * sm / (2 * m), "m", f"d{sub} from Q7 linearisation U vs D⁻² (d = C/√m)", group="advanced")
         # exact geometry + relativistic per point
         dex = []
         for p in use:
             theta = atan(p[ring] / (2 * L)) / 2
             dex.append(lam_rel(p["U"], k) / (2 * sin(theta)))
         mean_ex = sum(dex) / len(dex)
-        res.value(f"adv.{ref_key}_exact", mean_ex, None, "m", f"d{ring[1]}: exact geometry + relativistic λ, mean of points", sig=4, group="advanced")
-        compare(res, ref_key, d, sd, mpf(GRAPHITE_D[ref_key]), None, "m", f"d{ring[1]} vs {GRAPHITE_D[ref_key]} m (guide §4.7)")
+        res.value(f"adv.{ref_key}_exact", mean_ex, None, "m", f"d{sub}: exact geometry + relativistic λ, mean of points", sig=4, group="advanced")
+        compare(res, ref_key, d, sd, mpf(GRAPHITE_D[ref_key]), None, "m", f"d{sub} vs {GRAPHITE_D[ref_key]} m (guide §4.7)")
         concl[ref_key] = (d, sd)
-        p_ = fit_plot(f"fit.{ring}", f"{ring} vs U^(−1/2)", {"label": "U^(−1/2)", "unit": "V^(−½)"}, {"label": ring, "unit": "m"}, f, None, ids, labels, flags,
-                      name=ring, line_name=f"{ring} fit", x_from=0)
+        p_ = fit_plot(f"fit.{ring}", f"D{sub} vs U^(−1/2)", {"label": "U^(−1/2)", "unit": "V^(−½)"}, {"label": f"D{sub}", "unit": "m"}, f, None, ids, labels, flags,
+                      name=f"D{sub}", line_name=f"D{sub} fit", x_from=0)
         res.plot(p_)
-        plot_series.append(series_points(ring, [p["x"] for p in use], [p[ring] for p in use], ids=ids))
-        plot_series.append(series_line(f"{ring} fit", f.predict, 0, max(p["x"] for p in use) * mpf("1.05")))
+        plot_series.append(series_points(f"D{sub}", [p["x"] for p in use], [p[ring] for p in use], ids=ids))
+        plot_series.append(series_line(f"D{sub} fit", f.predict, 0, max(p["x"] for p in use) * mpf("1.05")))
     if plot_series:
         res.plot({"id": "both", "title": "D₁ and D₂ vs U^(−1/2)", "x": {"label": "U^(−1/2)", "unit": "V^(−½)"}, "y": {"label": "D", "unit": "m"},
                   "series": plot_series, "xZero": True, "yZero": True})

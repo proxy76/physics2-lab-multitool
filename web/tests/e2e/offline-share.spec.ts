@@ -3,6 +3,8 @@ import { expect, test } from "@playwright/test";
 import { engineReady, loadExample, settle } from "./helpers";
 
 test("after one load the whole app works in airplane mode, including the engine", async ({ page, context }) => {
+  // 21 MB precache + two engine cold starts + the SymPy load: slow when the other workers compete
+  test.setTimeout(240_000);
   await page.goto("/");
   await expect(page.getByText("Offline ready")).toBeVisible({ timeout: 90_000 });
   await engineReady(page);
