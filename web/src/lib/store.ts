@@ -1,7 +1,7 @@
 // App state: settings + experiment sessions. Autosaved to IndexedDB on every edit (debounced, and
 // flushed on pagehide/visibilitychange so a phone lock or a killed tab loses nothing).
 import { get as idbGet, set as idbSet } from "idb-keyval";
-import { useSyncExternalStore } from "react";
+import { useRef, useSyncExternalStore } from "react";
 import type { ConstantsSet } from "./engineTypes";
 
 export type Theme = "dark" | "light" | "darkroom";
@@ -98,14 +98,33 @@ export function setState(fn: (s: AppState) => AppState) {
   emit();
 }
 
+const subscribe = (l: () => void) => {
+  listeners.add(l);
+  return () => {
+    listeners.delete(l);
+  };
+};
+
+// Selectors may build new arrays/objects (e.g. a filtered session list). useSyncExternalStore needs a
+// stable snapshot while the state is unchanged, so the result is cached per (state, selector). The
+// selector is part of the key because inline selectors close over props (e.g. the experiment id).
 export function useAppState<T>(sel: (s: AppState) => T): T {
-  return useSyncExternalStore(
-    (l) => {
-      listeners.add(l);
-      return () => listeners.delete(l);
-    },
-    () => sel(state),
-  );
+  const cache = useRef<{ s: AppState; sel: (s: AppState) => T; v: T } | null>(null);
+  return useSyncExternalStore(subscribe, () => {
+    const c = cache.current;
+    if (c && c.s === state && c.sel === sel) return c.v;
+    const v = sel(state);
+    // keep the previous object when the new result is shallow-equal, so a fresh render does not
+    // hand children a new array identity
+    cache.current = { s: state, sel, v: c && shallowEqual(c.v, v) ? c.v : v };
+    return cache.current.v;
+  });
+}
+
+function shallowEqual(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+  return a.every((x, i) => Object.is(x, b[i]));
 }
 
 export function updateSettings(patch: Partial<Settings>) {

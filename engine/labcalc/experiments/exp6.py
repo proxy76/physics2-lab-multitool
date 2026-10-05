@@ -13,7 +13,7 @@ from ..constants import MATERIALS, material
 from ..parse import ParseError, is_blank, parse_number, parse_optional
 from ..result import Result, cell, cell_val_unc
 from ..rounding import fmt_sig, tex_sig as t
-from .common import compare, fit_plot, fit_values, fit_warnings, series_line, series_points
+from .common import as_read, compare, fit_plot, fit_values, fit_warnings, series_line, series_points
 
 def _area(H, L, R):
     return (R - L) * H / 2
@@ -74,7 +74,7 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
             rate = A / v["t"]
             sA = sqrt(A)  # Poisson estimate for the counts under the peak (Advanced)
             pts.append({"id": rid, "i": i, "x": v["x"] * to_cm, "xraw": v["x"], "t": v["t"], "H": v["H"], "L": v["L"], "R": v["R"],
-                        "A": A, "rate": rate, "ln": log(rate), "sln": sA / A, "excluded": bool(raw.get("excluded"))})
+                        "A": A, "rate": rate, "ln": log(rate), "sln": sA / A, "excluded": bool(raw.get("excluded")), "raw": raw})
         if not pts:
             continue
         rate0 = None
@@ -83,8 +83,8 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
             rate0 = sum(p["rate"] for p in zeros) / len(zeros)
         trows = []
         for n_, p in enumerate(pts):
-            trows.append({"id": p["id"], "no": str(n_ + 1), "x": cell(p["xraw"], None, 5), "t": cell(p["t"], None, 5), "H": cell(p["H"], None, 6),
-                          "L": cell(p["L"], None, 6), "R": cell(p["R"], None, 6), "A": cell(p["A"], None, 6), "rate": cell(p["rate"], None, 6),
+            trows.append({"id": p["id"], "no": str(n_ + 1), "x": as_read(p["raw"].get("x"), p["xraw"]), "t": as_read(p["raw"].get("t"), p["t"]),
+                          "H": as_read(p["raw"].get("H"), p["H"]), "L": as_read(p["raw"].get("L"), p["L"]), "R": as_read(p["raw"].get("R"), p["R"]), "A": cell(p["A"], None, 6), "rate": cell(p["rate"], None, 6),
                           "ln": cell(p["ln"], None, 6), "lnI0I": cell(log(rate0 / p["rate"]), None, 5) if rate0 else "", "excluded": p["excluded"]})
         res.table(f"data.{sym}", f"{sym}: data table (guide §6.4)", [
             {"key": "no", "label": "No", "unit": ""}, {"key": "x", "label": "Thickness", "unit": x_unit}, {"key": "t", "label": "t", "unit": "s"},

@@ -36,6 +36,8 @@ export function SettingsPage() {
       <Choice label="Constants" value={s.constants} onChange={(constants) => set({ constants })}
         options={[["codata", "CODATA 2022 / SI 2019 (default)"], ["guide", "Guide's rounded values (e = 1.6×10⁻¹⁹ …)"]]} />
       <Field label="Outlier threshold (|studentised residual|)" value={s.outlierThreshold} onChange={(v) => set({ outlierThreshold: v })} hint="default 2.5" />
+      <Choice label="Digits shown when you tap a result (full precision)" value={String(s.fullDigits)} onChange={(d) => set({ fullDigits: Number(d) })}
+        options={[["6", "6"], ["10", "10"], ["15", "15"], ["20", "20"], ["30", "30"]]} />
       <label className="check">
         <input type="checkbox" checked={s.roundUp} onChange={(e) => set({ roundUp: e.target.checked })} />
         <span>Round uncertainties up (GUM 7.2.6 permits it; off by default)</span>

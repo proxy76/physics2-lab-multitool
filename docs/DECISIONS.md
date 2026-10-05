@@ -99,3 +99,11 @@ The headline/conclusions table keeps the guide's value and s_a (what the guide a
 ## D21. Outlier statistic
 
 Outliers are flagged with **externally studentised residuals** (deleted-residual t). Internally studentised residuals are bounded by √(n − p) — with 7 points they can never exceed 2.24, so a 2.5 threshold would never fire.
+
+## D22. Experiment 5 outlier flags use the exact model and the known Poisson σ
+
+Visual QA with the example data showed the near slots (r = 2–4 cm) flagged "re-measure?" at 9–11 σ from the Method II line. Brief §6.1 D8 says this bend is expected: D²/16r² over-estimates Ω by 7–30 % there. With the Poisson σ of every rate known, even the far points sit several σ off the D²/16r² line, so its residuals measure the approximation, not the data. Therefore:
+
+- **Method II** never raises a "re-measure" prompt. Near points that fall below its line get an explanatory "expected" note instead.
+- **Measuring mistakes** are flagged against the exact model (Method I, n = K·g(r)), with residuals in units of each point's own σ_n (a weighted fit used for flagging only). The unweighted studentised residual of D21 is not used here, because the σ of n differs ×10–100 between slots and that test would flag whichever point carries the most absolute noise.
+- Measured: clean simulated datasets raise a flag in ≈ 9 % of 9-point runs (the 2.5 σ per-point threshold implies 9 × 1.2 %). A planted 15 % error in one count is flagged at ≈ 15 σ (`tests/test_experiments.py`).

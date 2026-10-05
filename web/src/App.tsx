@@ -105,7 +105,8 @@ export function App() {
     default:
       page = <Home />;
   }
-  const top = route[0] === "settings" || route[0] === "import" ? "" : route[0] ?? "";
+  // Settings and Import are not tabs: no tab is marked current there
+  const top = route[0] === "settings" || route[0] === "import" ? null : route[0] ?? "";
 
   return (
     <div className="app">

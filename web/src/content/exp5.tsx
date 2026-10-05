@@ -157,7 +157,7 @@ export const exp5: ExperimentDef = {
   questions: [
     {
       id: "q1", n: "1", text: "Can this method be used to measure the activity of beta- or alpha-radioactive sources?",
-      answer: `**No, not with this set-up.** The method assumes that the only thing between source and detector is geometry (the solid angle) and that ε is known. That holds for penetrating γ rays.
+      answer: String.raw`**No, not with this set-up.** The method assumes that the only thing between source and detector is geometry (the solid angle) and that ε is known. That holds for penetrating γ rays.
 
 - **α particles** have a range of a few cm in air and are stopped by the source capsule and the detector housing/window: ε ≈ 0 and unknown.
 - **β particles** have a continuous energy spectrum; they are absorbed and scattered in air, the source cover and the housing, and back-scatter. Their efficiency depends strongly on energy and is not the 0.2 given.
@@ -167,14 +167,14 @@ In principle a thin-window detector in vacuum with a calibrated ε for that part
     },
     {
       id: "q2", n: "2", text: "How does the solid angle of an object change when we double the distance between the apex and the object?",
-      answer: `Far from the object Ω ≈ (area)/r² — for our disc Ω ≈ πD²/(4r²) ∝ 1/r² — so doubling r makes Ω **4 times smaller**.
+      answer: String.raw`Far from the object Ω ≈ (area)/r² — for our disc Ω ≈ πD²/(4r²) ∝ 1/r² — so doubling r makes Ω **4 times smaller**.
 
 Close to the object it falls by *less* than 4, because the exact Ω/4π = ½ − 1/√(4 + (D/r)²) is not ∝ 1/r². With D = 2.54 cm, going from r = 3 cm to 6 cm divides Ω by **{{exp5.q2.ratio_3_6}}**.`,
       live: (r) => r?.extra?.q2_table?.length ? <LiveTable title="Your distances: Ω(r)/Ω(2r)" cols={[["r", "r (cm)"], ["ratio", "Ω(r)/Ω(2r)"]]} rows={r.extra.q2_table} /> : null,
     },
     {
       id: "q3", n: "3", text: "Why is a measurement of the background necessary? How is the background influencing the measurement result and how can we correct for it?",
-      answer: `The detector counts even without the source: cosmic rays, natural radioactivity (⁴⁰K, the U and Th chains, radon), the detector's own materials, and other sources in the room (Exp. 6 uses ¹³⁷Cs too).
+      answer: String.raw`The detector counts even without the source: cosmic rays, natural radioactivity (⁴⁰K, the U and Th chains, radon), the detector's own materials, and other sources in the room (Exp. 6 uses ¹³⁷Cs too).
 
 That background adds a constant rate n_b at every distance, so it inflates n most at large r, where the source signal is small, and it shows up as a non-zero intercept in Method II.
 
@@ -184,7 +184,7 @@ $$n=n'-n_b,\qquad \sigma_n=\sqrt{\sigma_{n'}^2+\sigma_{n_b}^2},\qquad \sigma_{n'
     },
     {
       id: "q4", n: "4", text: "What would the value of the solid angle be if the source could be placed at distance zero from the detector?",
-      answer: `**Ω = 2π sr** — a hemisphere: the detector face covers half of all directions, so Ω/4π = ½.
+      answer: String.raw`**Ω = 2π sr** — a hemisphere: the detector face covers half of all directions, so Ω/4π = ½.
 
 In eq. 5.2, 1/√(4 + (D/r)²) → 0 as r → 0, giving Ω/4π → ½. (The approximation D²/16r² diverges at r = 0 and cannot be used there.)
 
@@ -192,15 +192,15 @@ This is what Method I uses: n(0) = Λ·½·ε·S, so **Λ = 2·n(0)/(εS)**.`,
     },
     {
       id: "q5", n: "5", text: "What is the unit, in SI, for the activity?",
-      answer: `The **becquerel**: 1 Bq = 1 decay per second = 1 s⁻¹. (The old unit, the curie: 1 Ci = {{exp5.q5.Ci}}.)`,
+      answer: String.raw`The **becquerel**: 1 Bq = 1 decay per second = 1 s⁻¹. (The old unit, the curie: 1 Ci = {{exp5.q5.Ci}}.)`,
     },
     {
       id: "q6", n: "6", text: "Demonstrate the second part of equation 5.2. What assumption was made to obtain it? Is this assumption valid for all measurements?",
-      answer: `Let u = D/r. Then
+      answer: String.raw`Let u = D/r. Then
 
-$$\frac{1}{\sqrt{4+u^2}}=\frac12\left(1+\frac{u^2}{4}\right)^{-1/2}=\frac12\left(1-\frac{u^2}{8}+\frac{3u^4}{128}-\dots\right)$$
+$$\begin{aligned}\frac{1}{\sqrt{4+u^2}}&=\frac12\left(1+\frac{u^2}{4}\right)^{-1/2}\\&=\frac12\left(1-\frac{u^2}{8}+\frac{3u^4}{128}-\dots\right)\end{aligned}$$
 
-$$\frac{\Omega}{4\pi}=\frac12-\frac{1}{\sqrt{4+u^2}}=\frac{u^2}{16}-\frac{3u^4}{256}+\dots\approx\frac{D^2}{16r^2}$$
+$$\begin{aligned}\frac{\Omega}{4\pi}&=\frac12-\frac{1}{\sqrt{4+u^2}}\\&=\frac{u^2}{16}-\frac{3u^4}{256}+\dots\approx\frac{D^2}{16r^2}\end{aligned}$$
 
 **Assumptions:** D ≪ r (keep only the first term), and a point source on the detector axis.
 
@@ -217,7 +217,7 @@ So near slots bias Method II low; Method I uses the exact formula and is valid e
     },
     {
       id: "q7", n: "7", text: "How many significant digits should the uncertainty be written with? How many significant digits should the final result be written with?",
-      answer: `Following the guide's note on GUM (JCGM 100:2008 §7.2.6): **the uncertainty gets 1 significant digit, or 2 if that digit is 1**. The **result is rounded to the same decimal position** as the uncertainty.
+      answer: String.raw`Following the guide's note on GUM (JCGM 100:2008 §7.2.6): **the uncertainty gets 1 significant digit, or 2 if that digit is 1**. The **result is rounded to the same decimal position** as the uncertainty.
 
 Examples: Λ = 104 873 Bq, σ = 2 361 Bq → **(1.05 ± 0.02)×10⁵ Bq**; σ = 1 487 Bq → **(1.049 ± 0.015)×10⁵ Bq**.
 

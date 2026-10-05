@@ -168,7 +168,7 @@ export const exp6: ExperimentDef = {
   questions: [
     {
       id: "q1", n: "1", text: "Starting from relation 6.2, write a linear relation between the intensity of the radiation and the thickness of material.",
-      answer: `Take the natural logarithm of I(x) = I₀e^(−μx):
+      answer: String.raw`Take the natural logarithm of I(x) = I₀e^(−μx):
 
 $$\ln I(x)=\ln I_0-\mu x$$
 
@@ -176,7 +176,7 @@ A straight line in (x, ln I) with **slope −μ** and **intercept ln I₀**. Equ
     },
     {
       id: "q2", n: "2", text: "What is the uncertainty of the foil thickness. Why?",
-      answer: `It is set by the **measuring instrument's resolution** (Type B uncertainty), because a single reading of a thickness has no statistical scatter to evaluate:
+      answer: String.raw`It is set by the **measuring instrument's resolution** (Type B uncertainty), because a single reading of a thickness has no statistical scatter to evaluate:
 
 - caliper with 0.05 mm least count: ± {{exp6.q2.caliper_half}} (half the least count), or {{exp6.q2.caliper_gum}} with the GUM rectangular rule (least count/(2√3));
 - micrometer with 0.01 mm: ± {{exp6.q2.micrometer_half}}, or {{exp6.q2.micrometer_gum}} (GUM);
@@ -189,7 +189,7 @@ It is small compared with the counting/triangle scatter of ln(Area/t) (≈ 1–3
     },
     {
       id: "q3", n: "3", text: "Which of the three materials is the most useful for creating a shield to protect ourselves from gamma radiation? Why? How thick should such a shield be to reduce the incoming radiation by a factor of 1000?",
-      answer: `**Lead.** It has by far the largest μ per centimetre, for two reasons:
+      answer: String.raw`**Lead.** It has by far the largest μ per centimetre, for two reasons:
 
 - high density (11.35 g/cm³): Compton scattering, dominant at 662 keV, scales with the electron density ∝ ρZ/A;
 - high Z = 82: photoelectric absorption grows roughly as Z⁴–Z⁵ and still gives {{exp6.materials.2.photo_pct}} % of μ/ρ for Pb at 662 keV (only {{exp6.materials.1.photo_pct}} % for Fe).
@@ -203,7 +203,7 @@ With the NIST value μ_Pb = {{exp6.materials.2.mu}} cm⁻¹: x ≈ **{{exp6.q3_r
     },
     {
       id: "q4", n: "4", text: "In a shielding application (where a certain material is placed between us and the source) what is better: to use a single piece of thickness x or two pieces of thickness x/3 and 2x/3? Why?",
-      answer: `**They are equivalent.** Attenuation is multiplicative:
+      answer: String.raw`**They are equivalent.** Attenuation is multiplicative:
 
 $$e^{-\mu x/3}\cdot e^{-2\mu x/3}=e^{-\mu x}$$
 
@@ -211,7 +211,7 @@ Only the total thickness counts in the narrow-beam law (e.g. Pb, x = 3 cm: {{exp
     },
     {
       id: "q5", n: "5", text: "Knowing that the materials you are using as absorbers are Fe, Pb and Al, how do you identify them?",
-      answer: `**Without radiation:** density (weigh a sheet and measure its volume): Al 2.70, Fe 7.87, Pb 11.35 g/cm³. A magnet attracts only iron. Lead is very heavy, soft (scratches with a fingernail) and dull grey; aluminium is light and bright.
+      answer: String.raw`**Without radiation:** density (weigh a sheet and measure its volume): Al 2.70, Fe 7.87, Pb 11.35 g/cm³. A magnet attracts only iron. Lead is very heavy, soft (scratches with a fingernail) and dull grey; aluminium is light and bright.
 
 **With radiation:** μ per cm is ordered Pb > Fe > Al ({{exp6.materials.2.mu}} > {{exp6.materials.1.mu}} > {{exp6.materials.0.mu}} cm⁻¹, NIST).
 
@@ -219,7 +219,7 @@ Only the total thickness counts in the narrow-beam law (e.g. Pb, x = 3 cm: {{exp
     },
     {
       id: "q6", n: "6", text: "Do you see any difference between the attenuation coefficients calculated with the graphical method vs using the least square method? If you do, is this difference significant?",
-      answer: `Compare the two with their uncertainties:
+      answer: String.raw`Compare the two with their uncertainties:
 
 $$z=\frac{|\mu_{graph}-\mu_{LSQ}|}{\sqrt{\sigma_{graph}^2+\sigma_{LSQ}^2}}$$
 

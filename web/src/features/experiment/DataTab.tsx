@@ -20,7 +20,7 @@ export function DataTab({ def, data, setData, analysis }: { def: ExperimentDef; 
           {def.tables.length > 1 && (
             <div className="chips" role="tablist" aria-label="Tables">
               {def.tables.map((t, i) => (
-                <button key={t.id} type="button" role="tab" aria-selected={i === tableIdx} className="chip" onClick={() => setTableIdx(i)}>{t.id}</button>
+                <button key={t.id} type="button" role="tab" aria-selected={i === tableIdx} className="chip" onClick={() => setTableIdx(i)}>{t.short ?? t.title.split(" — ")[0]}</button>
               ))}
             </div>
           )}

@@ -86,13 +86,13 @@ export const exp3: ExperimentDef = {
   ],
   tables: [
     {
-      id: "hg", title: "Table 3.1 — mercury lines", path: "hg", fixed: true,
+      id: "hg", short: "Hg lines", title: "Table 3.1 — mercury lines", path: "hg", fixed: true,
       columns: [{ key: "lambda", label: "λ_Hg", unit: "nm", kind: "fixed" }, { key: "x", label: "x_Hg", unit: "mm" }],
       engineTable: "hg", derived: [{ key: "X", label: "λ⁻²", unit: "µm⁻²" }],
       rowLabel: (r) => `Hg ${r.lambda} nm`,
     },
     {
-      id: "h", title: "Table 3.2 — hydrogen lines", path: "h", fixed: true,
+      id: "h", short: "H lines", title: "Table 3.2 — hydrogen lines", path: "h", fixed: true,
       columns: [{ key: "line", label: "Spectral line", kind: "fixed" }, { key: "n", label: "n_i", kind: "fixed" }, { key: "x", label: "x_H", unit: "mm" }],
       engineTable: "h", derived: [{ key: "lam", label: "λ_H", unit: "nm" }, { key: "ref", label: "NIST air", unit: "nm" }, { key: "dev", label: "λ − NIST", unit: "nm" }],
       rowLabel: (r) => `${r.line} (n = ${r.n})`,
@@ -113,13 +113,13 @@ export const exp3: ExperimentDef = {
   questions: [
     {
       id: "q1", n: "1", text: "What is the relation between the energy and the frequency of a photon? What about the dependence of energy on wavelength?",
-      answer: `**E = hf** — proportional to the frequency. With f = c/λ: **E = hc/λ**, inversely proportional to the wavelength.
+      answer: String.raw`**E = hf** — proportional to the frequency. With f = c/λ: **E = hc/λ**, inversely proportional to the wavelength.
 
 Handy form: hc = {{exp3.hc_eVnm}}, so E(eV) ≈ 1239.84/λ(nm); e.g. 500 nm → {{exp3.q1_example_E}}.`,
     },
     {
       id: "q2", n: "2", text: "Can one see radiation in the Lyman series? Justify your answer. Paschen spectral series.",
-      answer: `**Lyman (n_f = 1): no.** With R = 1.09737×10⁷ m⁻¹ the lines run from Lyα = {{exp3.lyman_alpha_R}} (n_i = 2) down to the series limit {{exp3.lyman_limit_R}} — all ultraviolet, far below the ≈ 380 nm edge of vision (and absorbed by air and glass).
+      answer: String.raw`**Lyman (n_f = 1): no.** With R = 1.09737×10⁷ m⁻¹ the lines run from Lyα = {{exp3.lyman_alpha_R}} (n_i = 2) down to the series limit {{exp3.lyman_limit_R}} — all ultraviolet, far below the ≈ 380 nm edge of vision (and absorbed by air and glass).
 
 **Paschen (n_f = 3): no.** From Pα = {{exp3.paschen_alpha_R}} (n_i = 4) down to the limit {{exp3.paschen_limit_R}} — all infrared, above ≈ 750 nm.
 
@@ -127,7 +127,7 @@ Handy form: hc = {{exp3.hc_eVnm}}, so E(eV) ≈ 1239.84/λ(nm); e.g. 500 nm → 
     },
     {
       id: "q3", n: "3", text: "Calculate five wavelengths in the visible light range for the hydrogen gas emission by applying eq. 3.8. Record your results in the increasing of order in the first 3 columns of the data table bellow. Use R_H = 1.09737 × 10⁷ m⁻¹",
-      answer: `λ = 1/[R(1/4 − 1/n_i²)], in increasing order of n_i:
+      answer: String.raw`λ = 1/[R(1/4 − 1/n_i²)], in increasing order of n_i:
 
 |n_i|n_f|λ_H (nm)|Colour|
 |---|---|---|---|
@@ -141,13 +141,13 @@ These are vacuum wavelengths for an infinitely heavy nucleus. The measured air w
     },
     {
       id: "q4", n: "4", text: "Find the colour of the lines in the Balmer series and fill the 4-th column in the table above. x_Hg is on the abscissa.",
-      answer: `Hα 656 nm **red**; Hβ 486 nm **cyan (blue-green)**; Hγ 434 nm **blue-violet**; Hδ 410 nm **violet**; Hε 397 nm **deep violet**, at the edge of visibility (near UV). See the table in Q3.
+      answer: String.raw`Hα 656 nm **red**; Hβ 486 nm **cyan (blue-green)**; Hγ 434 nm **blue-violet**; Hδ 410 nm **violet**; Hε 397 nm **deep violet**, at the edge of visibility (near UV). See the table in Q3.
 
 > Guide note: “x_Hg is on the abscissa” is a stray fragment from the graph instructions, not part of this question.`,
     },
     {
       id: "theory", n: "Eq. 3.7", text: "(Check) R_H has the theoretical expression R_H = mₑe⁴/(8cε₀²h³) — eq. 3.7 with the corrected power of h.",
-      answer: `With CODATA constants eq. 3.7 gives **{{exp3.eq37_codata}}** = R∞ (infinitely heavy nucleus); with the guide's rounded constants {{exp3.eq37_guide}}. For hydrogen the reduced mass gives R_H = R∞/(1 + mₑ/m_p) = {{exp3.RH_codata}} ({{exp3.RH_Rinf_diff_pct}} smaller). Eq. 3.3 with h² gives E₁ = {{exp3.E1_codata}}.
+      answer: String.raw`With CODATA constants eq. 3.7 gives **{{exp3.eq37_codata}}** = R∞ (infinitely heavy nucleus); with the guide's rounded constants {{exp3.eq37_guide}}. For hydrogen the reduced mass gives R_H = R∞/(1 + mₑ/m_p) = {{exp3.RH_codata}} ({{exp3.RH_Rinf_diff_pct}} smaller). Eq. 3.3 with h² gives E₁ = {{exp3.E1_codata}}.
 
 > The guide prints h³ in eq. 3.2–3.3 and h⁴ in 3.4–3.7; only h² and h³ give the right units.`,
     },

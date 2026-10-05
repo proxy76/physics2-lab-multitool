@@ -204,6 +204,37 @@ def test_outlier_flagged():
     assert "Pb3" in res["extra"]["flags"]
 
 
+def test_exp5_near_points_not_flagged_for_remeasure():
+    # The example data includes r = 2–4 cm, where D²/16r² is 7–30 % too large: those points sit far
+    # below the Method II line by design and must be explained, not sent back for re-measurement.
+    ex = golden.examples()["exp5"]
+    res = run("exp5", ex)
+    flags = res["extra"]["flags"]
+    assert not any("outlier" in f for f in flags.values())
+    assert "expected" in flags["r0"]
+    assert not any(w["code"] == "outlier" for w in res["warnings"])
+
+
+def test_tables_echo_readings_as_typed():
+    p = golden.examples()["exp5"]
+    p["rows"][1]["r"] = "3,0"  # decimal comma keeps its digit
+    row = run("exp5", p)["tables"][0]["rows"]
+    assert row[0]["N"] == p["rows"][0]["N"] and "×" not in row[0]["N"]
+    assert row[1]["r"] == "3.0"
+    p6 = golden.examples()["exp6"]
+    p6["materials"][1]["rows"][1]["x"] = "0.30"
+    t6 = next(t for t in run("exp6", p6)["tables"] if t["id"] == "data.Fe")
+    assert t6["rows"][1]["x"] == "0.30"
+
+
+def test_exp5_real_mistake_flagged_against_exact_model():
+    p = golden.make("exp5", random.Random(7))
+    p["rows"][5]["N"] = str(int(int(p["rows"][5]["N"]) * 1.15))  # 15 % mis-read count at r = 8 cm
+    res = run("exp5", p)
+    assert "outlier" in res["extra"]["flags"][p["rows"][5]["id"]]
+    assert any(w["code"] == "outlier" and "Method I" in w["message"] for w in res["warnings"])
+
+
 def test_exp3_misidentification_warning():
     p = golden.make("exp3")
     p["h"][0]["n"], p["h"][1]["n"] = "4", "3"  # swap Hα / Hβ labels

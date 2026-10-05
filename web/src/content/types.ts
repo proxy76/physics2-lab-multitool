@@ -26,6 +26,7 @@ export interface ColDef {
 export interface TableDef {
   id: string;
   title: string;
+  short?: string; // chip label when an experiment has several tables
   path: string; // array path in session data
   columns: ColDef[];
   defaults?: Record<string, string>;

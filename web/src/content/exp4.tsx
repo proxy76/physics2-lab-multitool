@@ -100,7 +100,7 @@ export const exp4: ExperimentDef = {
   questions: [
     {
       id: "q1", n: "1", text: "Consider a grain of sand (m = 3 × 10⁻⁸ g) moving at the speed of sound in air (v = 340 m/s). Calculate the de Broglie wavelength and compare it to the carbon atomic diameter (≈ 2.2 × 10⁻¹⁰ m) and to the largest plane spacing in a carbon hexagonal lattice (d₁ = 2.13 × 10⁻¹⁰ m). Is it possible to obtain a diffraction pattern by shooting grains of sand at a carbon crystal lattice?",
-      answer: `m = 3×10⁻⁸ g = {{exp4.q1.m}}, p = mv = {{exp4.q1.p}}.
+      answer: String.raw`m = 3×10⁻⁸ g = {{exp4.q1.m}}, p = mv = {{exp4.q1.p}}.
 
 λ = h/p = 6.626×10⁻³⁴ / 1.02×10⁻⁸ ≈ **{{exp4.q1.lambda}}**
 
@@ -110,7 +110,7 @@ export const exp4: ExperimentDef = {
     },
     {
       id: "q2", n: "2", text: "Repeat the calculation in Question 1 by using an electron accelerated under a potential difference of 2 kV as a replacement for the grain of sand. Is it possible to obtain a diffraction pattern by shooting electrons at a carbon crystal lattice?",
-      answer: `λ = h/√(2mₑeU) with U = 2000 V: **{{exp4.q2.lambda}}** = {{exp4.q2.lambda_pm}} (relativistic: {{exp4.q2.lambda_rel}}, {{exp4.q2.rel_corr_pct}}).
+      answer: String.raw`λ = h/√(2mₑeU) with U = 2000 V: **{{exp4.q2.lambda}}** = {{exp4.q2.lambda_pm}} (relativistic: {{exp4.q2.lambda_rel}}, {{exp4.q2.rel_corr_pct}}).
 
 d₁/λ ≈ {{exp4.q2.d1_over_lambda}}: λ is smaller than d₁ but of the same order, and Bragg's condition 2d sin θ = λ (λ ≤ 2d) is satisfied at θ ≈ {{exp4.q2.theta_deg}}.
 
@@ -118,7 +118,7 @@ d₁/λ ≈ {{exp4.q2.d1_over_lambda}}: λ is smaller than d₁ but of the same 
     },
     {
       id: "q3", n: "3", text: "Calculate the speed and the associated wavelength of an electron accelerated under a p.d. of 3 to 5 kV with a step of 0.5 kV and write the results in a table. Was it correct to use the nonrelativistc formula for the kinetic energy in eq. 2?",
-      answer: `Non-relativistic: v = √(2eU/mₑ), λ = h/(mₑv). Relativistic: γ = 1 + eU/(mₑc²), v = c√(1 − 1/γ²), λ = h/√(2mₑeU(1 + eU/2mₑc²)).
+      answer: String.raw`Non-relativistic: v = √(2eU/mₑ), λ = h/(mₑv). Relativistic: γ = 1 + eU/(mₑc²), v = c√(1 − 1/γ²), λ = h/√(2mₑeU(1 + eU/2mₑc²)).
 
 |U (kV)|v classical (m/s)|v/c (rel.)|λ classical (pm)|λ rel. (pm)|Δλ|Δv|
 |---|---|---|---|---|---|---|
@@ -132,20 +132,20 @@ v/c ≈ 0.11–0.14. **Yes, the non-relativistic formula was acceptable:** it ma
     },
     {
       id: "q4", n: "4", text: "Explain how does this experiment confirm de Broglie hypothesys?",
-      answer: `- The rings are an **interference pattern** (Bragg reflection on the randomly oriented crystallites, Debye–Scherrer) — a wave phenomenon that particles alone would not produce.
+      answer: String.raw`- The rings are an **interference pattern** (Bragg reflection on the randomly oriented crystallites, Debye–Scherrer) — a wave phenomenon that particles alone would not produce.
 - Their diameters scale as **U^(−1/2)**, exactly as λ = h/p = h/√(2meU) predicts (our D vs U^(−1/2) plot is a straight line).
 - The spacings d₁, d₂ we obtain agree with graphite's known spacings (2.13 and 1.23 Å from X-ray crystallography), and D₂/D₁ ≈ √3 as the hexagonal lattice requires.
 - (The rings are made by electrons — a magnet near the bulb would shift them. Mention as an argument only; do not try it without permission.)`,
     },
     {
       id: "q5", n: "5", text: "Consider a maximum measured value of 6 cm for the diameter of the second diffraction ring. Is the approximation used in tan(2θ) ≈ 2 sin θ (eq. 5) still valid? Justify your answer.",
-      answer: `tan 2θ = D/2L = 3/13.5 = {{exp4.q5.tan2theta}} ⇒ 2θ = {{exp4.q5.two_theta_deg}}. Then sin 2θ = {{exp4.q5.sin2theta}} and 2 sin θ = {{exp4.q5.two_sin_theta}}.
+      answer: String.raw`tan 2θ = D/2L = 3/13.5 = {{exp4.q5.tan2theta}} ⇒ 2θ = {{exp4.q5.two_theta_deg}}. Then sin 2θ = {{exp4.q5.sin2theta}} and 2 sin θ = {{exp4.q5.two_sin_theta}}.
 
 Using D/2L instead of 2 sin θ is off by **{{exp4.q5.err_pct}}**, so d comes out ≈ 1.8 % too small. That is **borderline**: smaller than a typical 3–5 % uncertainty of d from the fit, but no longer negligible. For D ≲ 4 cm the error drops below 1 %. The app's Advanced panel applies the exact geometry.`,
     },
     {
       id: "q6", n: "6", text: "What type of a dependence exists between the measured diameter value D and the inverse square root value of the accelerating voltage U^(−1/2), D = f(U^(−1/2))?",
-      answer: `**Direct proportionality** — a straight line through the origin:
+      answer: String.raw`**Direct proportionality** — a straight line through the origin:
 
 $$D=\frac{C}{d}\,U^{-1/2},\qquad C=\frac{2Lh}{\sqrt{2m_ee}}$$
 
@@ -153,7 +153,7 @@ with C = {{exp4.C_codata}} (CODATA). The slope is C/d, so d = C/slope.`,
     },
     {
       id: "q7", n: "7", text: "Figure out a linear dependence between the accelerating voltage U and a power of D, U = f(D^x). In such a linear representation what is the equation which connects the slope to the unknown quantity d?",
-      answer: `Square and invert D = (C/d)·U^(−1/2):
+      answer: String.raw`Square and invert D = (C/d)·U^(−1/2):
 
 $$U=\frac{C^2}{d^2}\,D^{-2}\qquad (x=-2)$$
 

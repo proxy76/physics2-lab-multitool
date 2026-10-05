@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Field } from "../../components/Field";
 import { GenericResult } from "../../components/ResultView";
+import { Sym } from "../../components/Sym";
 import { useAnalysis, useEngineStatus } from "../../lib/engine";
 import { go } from "../../lib/router";
 
@@ -141,7 +142,7 @@ function ToolView({ tool }: { tool: Tool }) {
         {tool.fields.filter((f) => !f.when || f.when(v)).map((f) =>
           f.area ? (
             <label key={f.key} className="field area">
-              <span className="field-label">{f.label}</span>
+              <span className="field-label"><Sym text={f.label} /></span>
               <textarea className="num" rows={4} inputMode="decimal" value={v[f.key] ?? ""} onChange={(e) => set(f.key, e.target.value)} />
             </label>
           ) : (

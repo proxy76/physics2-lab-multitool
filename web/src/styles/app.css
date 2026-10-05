@@ -86,6 +86,12 @@ li { margin: 0.2em 0; }
   font-weight: 700;
   min-height: var(--tap);
 }
+.brand-name { white-space: nowrap; }
+/* two status pills + two icon buttons leave no room for the name on a phone; the mark stays */
+@media (max-width: 440px) {
+  .brand-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+}
+sub { font-size: 0.72em; line-height: 0; vertical-align: -0.25em; }
 .brand-mark {
   width: 22px;
   height: 22px;
@@ -246,7 +252,7 @@ li { margin: 0.2em 0; }
 .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
 .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.field label, .field > .field-label { display: flex; justify-content: space-between; gap: var(--sp-2); }
+.field label { display: flex; justify-content: space-between; gap: var(--sp-2); }
 .field-label { font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
 .field-unit { font-size: var(--fs-sm); color: var(--muted); font-family: var(--font-num); }
 .field input, .field select, .field textarea, .custom-timer input {
@@ -447,7 +453,9 @@ li { margin: 0.2em 0; }
 .entry-fields { display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
 @media (min-width: 520px) { .entry-fields { grid-template-columns: repeat(2, 1fr); } }
 .verify { border: 1px dashed var(--line); border-radius: var(--r-input); padding: var(--sp-2) var(--sp-3); margin: var(--sp-3) 0; }
-.verify legend { font-size: var(--fs-sm); color: var(--muted); padding: 0 var(--sp-1); }
+/* float keeps a wrapping legend inside the dashed box instead of straddling its border */
+.verify legend { float: left; width: 100%; font-size: var(--fs-sm); color: var(--muted); padding: 0; margin-bottom: var(--sp-1); }
+.verify legend + * { clear: both; }
 .step-nav {
   position: sticky;
   bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + var(--sp-2));
@@ -500,6 +508,7 @@ li { margin: 0.2em 0; }
 .row-label { font-weight: 700; }
 .row-time { color: var(--muted); font-size: var(--fs-sm); }
 .row-flag { color: var(--bad); font-weight: 700; margin: 0 0 var(--sp-2); }
+.row-flag.expected { color: var(--muted); font-weight: 400; font-size: var(--fs-sm); }
 .row-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--sp-2); }
 .dtable.compact .row-fields { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-3); }
 .dtable.compact .field input { min-height: 60px; font-size: var(--fs-num); font-weight: 600; border-width: 2px; }
@@ -519,7 +528,9 @@ li { margin: 0.2em 0; }
 .readings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); }
 @media (min-width: 520px) { .readings-grid { grid-template-columns: repeat(5, 1fr); } }
 .readings-grid .field label { justify-content: flex-start; }
-.data-grid { display: grid; gap: var(--sp-5); }
+/* minmax(0, …) and fieldset min-width: 0 stop wide content (10 readings, long tables) from widening the page */
+.data-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
+fieldset { min-width: 0; }
 @media (min-width: 900px) {
   .data-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
   .data-live { position: sticky; top: calc(var(--head-h) + var(--sp-4)); }
@@ -531,7 +542,12 @@ li { margin: 0.2em 0; }
 
 /* ------------------------------------------------------------------ results */
 .headline { margin-bottom: var(--sp-4); }
-.value-line { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); padding: var(--sp-2) 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.value-line { padding: var(--sp-2) 0; border-bottom: 1px solid var(--line); }
+.value-toggle {
+  display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap;
+  width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.value-full { margin: var(--sp-1) 0 0; overflow-wrap: anywhere; }
 .value-label { color: var(--muted); }
 .value-report { font-weight: 600; }
 .value-line.emph .value-report { font-size: var(--fs-xl); color: var(--accent); }

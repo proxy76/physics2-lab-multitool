@@ -13,7 +13,7 @@ from ..constants import GRAPHITE_D, graphite_C
 from ..parse import ParseError, is_blank, parse_number, parse_optional
 from ..result import Result, cell, cell_val_unc, num
 from ..rounding import fmt_sig, tex_sig as t
-from .common import compare, fit_plot, fit_values, fit_warnings, series_line, series_points
+from .common import as_read, compare, fit_plot, fit_values, fit_warnings, series_line, series_points
 
 SQRT3 = sqrt(3)
 
@@ -66,8 +66,9 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
                 res.info("approx", f"Row {i + 1}: {ring} = {fmt_sig(Dv * 100, 3)} cm — the small-angle chain of eq. 4.5 is off by ≈ "
                          f"{fmt_sig(_approx_error(Dv, L) * 100, 2)} % here (Q5).")
         pts.append(p)
-        trows.append({"id": p["id"], "U": cell(U / Uf, None, 5), "x": cell(p["x"], None, 6),
-                      "d1_in": _c(vals["d1_in"]), "d1_out": _c(vals["d1_out"]), "D1": _c(D1), "d2_in": _c(vals["d2_in"]), "d2_out": _c(vals["d2_out"]), "D2": _c(D2),
+        rd = {key: as_read(r.get(key), vals[key]) for key in ("d1_in", "d1_out", "d2_in", "d2_out")}
+        trows.append({"id": p["id"], "U": as_read(r.get("U"), U / Uf), "x": cell(p["x"], None, 6),
+                      "d1_in": rd["d1_in"], "d1_out": rd["d1_out"], "D1": _c(D1), "d2_in": rd["d2_in"], "d2_out": rd["d2_out"], "D2": _c(D2),
                       "ratio": fmt_sig(ratio, 4) if ratio else "", "excluded": p["excluded"]})
     res.table("data", "Data table (guide §4.4)", [{"key": "U", "label": "U", "unit": U_unit}, {"key": "x", "label": "U^(−1/2)", "unit": "V^(−½)"},
               {"key": "d1_in", "label": "D₁ inner", "unit": D_unit}, {"key": "d1_out", "label": "D₁ outer", "unit": D_unit}, {"key": "D1", "label": "D₁", "unit": D_unit},

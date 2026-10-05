@@ -18,7 +18,7 @@ from ..constants import CS137, EXP5
 from ..parse import ParseError, is_blank, parse_number, parse_optional
 from ..result import Result, cell, cell_val_unc, num
 from ..rounding import fmt_sig, tex_sig as t
-from .common import compare, fit_plot, fit_values, fit_warnings, opt, rows_complete, series_line, series_points
+from .common import as_read, compare, fit_plot, fit_values, fit_warnings, opt, rows_complete, series_line, series_points
 
 TITLE = "Experiment 5 — Source activity (solid-angle method)"
 
@@ -32,6 +32,15 @@ def g_exact(r, D):
 
 def x_approx(r, D):
     return D ** 2 / (16 * r ** 2)
+
+
+def _flag_fit(use, xkey, fit, origin=False):
+    """Fit used only to flag outliers. The Poisson σ of n differs ×10–100 between slots, so the
+    unweighted studentised residual flags whichever point carries the most absolute noise (D21/D22).
+    With every σ_n known, the residual in units of its own σ (weighted fit) is the honest test."""
+    if any(p["sn"] <= 0 for p in use):
+        return fit
+    return linfit.weighted([p[xkey] for p in use], [p["n"] for p in use], [p["sn"] for p in use], through_origin=origin)
 
 
 def analyze(params: dict, k: dict, options: dict) -> dict:
@@ -79,7 +88,7 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
                     "err": err, "lam": lam_i, "slam": s_lam_i, "excluded": excluded})
         nv, nu = cell_val_unc(n, sn)
         n1v, n1u = cell_val_unc(n1, s1)
-        table_rows.append({"id": rid, "r": cell(r, None, 4), "t": cell(tt, None, 4), "N": fmt_sig(N, 12), "sN": cell(sqrt(N), None, 3),
+        table_rows.append({"id": rid, "r": as_read(raw.get("r"), r), "t": as_read(raw.get("t"), tt), "N": as_read(raw.get("N"), N, 12), "sN": cell(sqrt(N), None, 3),
                            "n1": n1v, "s1": n1u, "n": nv, "sn": nu, "Xa": cell(Xa, None, 5), "Xe": cell(Xe, None, 5),
                            "err": fmt_sig(err * 100, 3), "lam": cell(lam_i, s_lam_i), "excluded": excluded})
         if n <= 0:
@@ -117,7 +126,15 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
     lam2 = None
     if len(use) >= 3:
         f2 = linfit.ols([p["Xa"] for p in use], [p["n"] for p in use])
-        fit_warnings(res, f2, ids, labels, thr, "Method II")
+        # No "re-measure" flags from this line: D²/16r² is a biased model (7–30 % at r = 2–4 cm, still
+        # > the Poisson σ further out), so its residuals measure the approximation, not the data.
+        # Measuring mistakes are flagged against the exact model in Method I (D22).
+        if f2.df >= 2:
+            for i in linfit.outliers(f2, thr):
+                if use[i]["err"] > mpf("0.05") and use[i]["n"] < f2.a * use[i]["Xa"] + f2.b:
+                    flags.setdefault(str(ids[i]), {}).setdefault(
+                        "expected", f"below the D²/16r² line as expected: the approximation is {fmt_sig(use[i]['err'] * 100, 2)} % "
+                        "too large at this distance (Q6) — not a measuring error")
         fit_values(res, "m2", f2, "s⁻¹", "s⁻¹", group="Method II fit")
         lam2, slam2 = f2.a / eS, f2.s_a / eS
         res.value("lambda2", lam2, slam2, "Bq", "Λ (Method II)", group="results")
@@ -128,12 +145,14 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
         res.step("Method II: activity from the slope (eq. 5.3)", r"\Lambda_{II}=\frac{a}{\varepsilon S},\quad \sigma_{\Lambda}=\frac{s_a}{\varepsilon S}",
                  rf"\Lambda_{{II}}=\frac{{{t(f2.a)}}}{{{t(eps)}\cdot{t(S)}}},\ \sigma=\frac{{{t(f2.s_a)}}}{{{t(eS)}}}",
                  rf"\Lambda_{{II}}={t(lam2)}\ \mathrm{{Bq}},\ \sigma={t(slam2, 3)}\ \mathrm{{Bq}}")
+        near_any = any(p["err"] > mpf("0.05") for p in use)
         zb = abs(f2.b) / f2.s_b if f2.s_b > 0 else None
         res.extra["intercept_check"] = {"b": fmt_sig(f2.b, 4), "s_b": fmt_sig(f2.s_b, 3), "z": fmt_sig(zb, 3) if zb is not None else None,
                                         "nb": fmt_sig(nb, 4), "ok": bool(zb is not None and zb <= 2)}
         if zb is not None and zb > 2:
             res.info("intercept", f"Method II intercept b = {fmt_sig(f2.b, 3)} s⁻¹ differs from 0 by {fmt_sig(zb, 2)} σ. "
-                     + ("Check the background subtraction." if have_bg else "Without background subtraction b ≈ n_b is expected."))
+                     + ("Near points bending below the line (Q6) shift b; if it persists without them, check the background subtraction."
+                        if near_any else "Check the background subtraction." if have_bg else "Without background subtraction b ≈ n_b is expected."))
         near = [p for p in use if p["err"] > mpf("0.05")]
         if near:
             res.info("approx_bias", "Points closer than " + fmt_sig(max(p["r"] for p in near), 3) +
@@ -148,8 +167,9 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
     lam1 = None
     if len(use) >= 2:
         f1 = linfit.origin([p["Xe"] for p in use], [p["n"] for p in use])
+        ff1 = _flag_fit(use, "Xe", f1, origin=True)
         if len(use) >= 4:
-            fit_warnings(res, f1, ids, labels, thr, "Method I")
+            fit_warnings(res, ff1, ids, labels, thr, "Method I")
         K, sK = f1.a, f1.s_a
         n0, sn0 = K / 2, sK / 2
         lam1, slam1 = K / eS, sK / eS
@@ -178,7 +198,8 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
             series.append(series_points("excluded", [p["r"] for p in ex], [p["n"] for p in ex]))
         res.plot({"id": "m1", "title": "Method I: n = f(r), extrapolated to r = 0", "x": {"label": "r", "unit": "cm"}, "y": {"label": "n", "unit": "s⁻¹"},
                   "series": series, "xZero": True, "yZero": True,
-                  "residuals": {"x": [num(p["r"]) for p in use], "y": [num(v) for v in f1.res], "z": [num(v) for v in f1.std_res], "ids": [str(i) for i in ids]}})
+                  "residuals": {"x": [num(p["r"]) for p in use], "y": [num(v) for v in f1.res], "z": [num(v) for v in ff1.std_res], "ids": [str(i) for i in ids],
+                                "bad": [str(i) in flags and "outlier" in flags[str(i)] for i in ids]}})
         concl.append(("I", lam1, slam1))
         res.extra["m1"] = {"K": fmt_sig(K, 8), "n0": fmt_sig(n0, 6)}
     else:

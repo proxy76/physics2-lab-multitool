@@ -1,4 +1,5 @@
 import { useId, type KeyboardEvent } from "react";
+import { Sym } from "./Sym";
 
 // Mirrors labcalc.parse (the engine is the authority; this only gives instant feedback).
 const NUM = /^\s*[+\-−–]?(\d[\d\s]*([.,]\d*)?|[.,]\d+)\s*(([eE][+\-−–]?\d+)|([×x*·]\s*10\s*\^?\s*\(?[+\-−–]?\d+\)?)|(10[⁻⁰¹²³⁴⁵⁶⁷⁸⁹]+))?\s*$/;
@@ -40,7 +41,7 @@ export function Field({ label, value, onChange, unit, hint, text, signed, big, e
   return (
     <div className={`field${big ? " field-big" : ""}${msg ? " field-bad" : ""}${className ? " " + className : ""}`}>
       <label htmlFor={id}>
-        <span className="field-label">{label}</span>
+        <span className="field-label"><Sym text={label} /></span>
         {unit && <span className="field-unit">{unit}</span>}
       </label>
       {options ? (

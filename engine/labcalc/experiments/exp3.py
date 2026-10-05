@@ -14,7 +14,7 @@ from ..constants import BALMER, HG_LINES_GUIDE, HG_LINES_NIST
 from ..parse import ParseError, is_blank, parse_number, parse_optional
 from ..result import Result, cell, cell_val_unc, num
 from ..rounding import fmt_sig, tex_sig as t
-from .common import compare, fit_plot, fit_values, fit_warnings, series_points
+from .common import as_read, compare, fit_plot, fit_values, fit_warnings, series_points
 
 NIST_OF_GUIDE = dict(zip(HG_LINES_GUIDE, HG_LINES_NIST))
 UM = mpf("1e-3")  # nm → µm
@@ -36,10 +36,11 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
         lam_txt = str(r.get("lambda")).strip()
         lam = parse_number(NIST_OF_GUIDE.get(lam_txt, lam_txt) if use_nist else lam_txt, f"hg[{i}].lambda")
         x = parse_number(r.get("x"), f"hg[{i}].x")
-        cal.append({"id": r.get("id", f"hg{i}"), "lam": lam, "x": x, "X": 1 / (lam * UM) ** 2, "excluded": bool(r.get("excluded"))})
+        cal.append({"id": r.get("id", f"hg{i}"), "lam": lam, "x": x, "X": 1 / (lam * UM) ** 2, "excluded": bool(r.get("excluded")),
+                    "xread": as_read(r.get("x"), x)})
     res.table("hg", "Table 3.1 — mercury calibration", [{"key": "lam", "label": "λ_Hg", "unit": "nm"}, {"key": "x", "label": "x_Hg", "unit": "mm"},
               {"key": "X", "label": "λ⁻²", "unit": "µm⁻²"}],
-              [{"id": c["id"], "lam": fmt_sig(c["lam"], 7), "x": fmt_sig(c["x"], 6), "X": cell(c["X"], None, 6), "excluded": c["excluded"]} for c in cal])
+              [{"id": c["id"], "lam": fmt_sig(c["lam"], 7), "x": c["xread"], "X": cell(c["X"], None, 6), "excluded": c["excluded"]} for c in cal])
     use = [c for c in cal if not c["excluded"]]
     if len(use) < 3:
         res.info("need_rows", "Enter at least 3 mercury lines to calibrate (all 11 recommended).")
@@ -97,7 +98,7 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
         hp.append({"id": r.get("id", f"h{i}"), "label": label, "n": n, "x": xH, "lam": lam_nm * mpf("1e-9"), "slam": slam_nm * mpf("1e-9"),
                    "lam_nm": lam_nm, "slam_nm": slam_nm, "excluded": bool(r.get("excluded")), "ref": ref})
         lv, lu = cell_val_unc(lam_nm, slam_nm)
-        hrows.append({"id": r.get("id", f"h{i}"), "line": label, "n": str(n), "x": fmt_sig(xH, 6), "lam": cell(lam_nm, None, 6), "lam_r": lv, "slam": lu,
+        hrows.append({"id": r.get("id", f"h{i}"), "line": label, "n": str(n), "x": as_read(r.get("x"), xH), "lam": cell(lam_nm, None, 6), "lam_r": lv, "slam": lu,
                       "ref": fmt_sig(ref, 6) if ref else "", "dev": fmt_sig((lam_nm - ref), 3) if ref else "", "extrap": extrap, "excluded": bool(r.get("excluded"))})
     res.table("h", "Table 3.2 — hydrogen lines", [{"key": "line", "label": "Spectral line", "unit": ""}, {"key": "n", "label": "n_i", "unit": ""},
               {"key": "x", "label": "x_H", "unit": "mm"}, {"key": "lam", "label": "λ_H", "unit": "nm"}, {"key": "slam", "label": "σ_λ (Adv.)", "unit": "nm"},

@@ -61,7 +61,7 @@ export interface Plot {
   x: { label: string; unit: string };
   y: { label: string; unit: string };
   series: Series[];
-  residuals?: { x: number[]; y: number[]; z: number[]; ids?: (string | null)[] | null };
+  residuals?: { x: number[]; y: number[]; z: number[]; ids?: (string | null)[] | null; bad?: boolean[] | null };
   xZero?: boolean;
   yZero?: boolean;
 }
@@ -97,7 +97,7 @@ export interface EngineResult {
   steps: Step[];
   warnings: Warning[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  extra: Record<string, any> & { compare?: Compare[]; flags?: Record<string, { outlier?: string }> };
+  extra: Record<string, any> & { compare?: Compare[]; flags?: Record<string, { outlier?: string; expected?: string }> };
   selfcheck?: { ok: boolean; min_digits: number; worst: string | null };
   constants?: ConstantsSet;
 }

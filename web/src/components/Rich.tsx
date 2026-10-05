@@ -4,6 +4,7 @@
 // Inline: **bold**, *italic*, $tex$, {{answers.path}} (engine-generated numbers).
 import { Fragment, type ReactNode } from "react";
 import { answer } from "../content";
+import { Sym } from "./Sym";
 import { Tex } from "./Tex";
 
 export function fill(text: string): string {
@@ -18,14 +19,14 @@ function inline(text: string, key = ""): ReactNode[] {
   let i = 0;
   const t = fill(text);
   while ((m = re.exec(t))) {
-    if (m.index > last) out.push(t.slice(last, m.index));
+    if (m.index > last) out.push(<Sym key={key + i++} text={t.slice(last, m.index)} />);
     const tok = m[0];
     if (tok.startsWith("$")) out.push(<Tex key={key + i++} tex={tok.slice(1, -1)} />);
     else if (tok.startsWith("**")) out.push(<strong key={key + i++}>{tok.slice(2, -2)}</strong>);
     else out.push(<em key={key + i++}>{tok.slice(1, -1)}</em>);
     last = m.index + tok.length;
   }
-  if (last < t.length) out.push(t.slice(last));
+  if (last < t.length) out.push(<Sym key={key + i++} text={t.slice(last)} />);
   return out;
 }
 

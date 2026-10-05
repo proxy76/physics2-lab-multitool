@@ -5,8 +5,8 @@ from __future__ import annotations
 from mpmath import mpf, sqrt
 
 from .. import linfit
-from ..parse import ParseError, is_blank, parse_number
-from ..result import Result, num
+from ..parse import ParseError, is_blank, normalise, parse_number
+from ..result import Result, cell, num
 from ..rounding import fmt_sig
 
 
@@ -20,6 +20,19 @@ def num_or_none(row: dict, key: str, field: str):
     if is_blank(v):
         return None
     return parse_number(v, field)
+
+
+def as_read(raw, value=None, sig: int = 6) -> str:
+    """A measured value for a data table, shown as it was read (decimal comma → point), so the
+    table keeps the instrument's digits: "0.30" stays "0.30", a count of 156410 stays "156410"."""
+    if not is_blank(raw):
+        try:
+            s = normalise(raw)
+            if "e" not in s:
+                return s
+        except ParseError:
+            pass
+    return cell(value, None, sig) if value is not None else ""
 
 
 def rows_complete(rows: list, keys: list[str], prefix: str):
@@ -110,7 +123,8 @@ def fit_plot(id, title, x, y, fit: linfit.Fit, yerr=None, ids=None, labels=None,
         series.extend(extra_series)
     return {"id": id, "title": title, "x": x, "y": y, "series": series,
             "residuals": {"x": [num(v) for v in xs], "y": [num(v) for v in fit.res], "z": [num(v) for v in fit.std_res],
-                          "ids": [str(i) for i in ids] if ids else None}}
+                          "ids": [str(i) for i in ids] if ids else None,
+                          "bad": [str(i) in flags and "outlier" in flags[str(i)] for i in ids] if ids and flags is not None else None}}
 
 
 def need(n: int, k: int, what: str):

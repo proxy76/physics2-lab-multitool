@@ -135,7 +135,7 @@ export const exp7: ExperimentDef = {
   questions: [
     {
       id: "step2", n: "Step 2", text: "Explain why the equation that relates Planck's constant (h) to the voltage reading and the photon wavelength is: eU₀ = hν − W_extraction (7.3)",
-      answer: `1. One photon of energy hν is absorbed by one electron of the cathode.
+      answer: String.raw`1. One photon of energy hν is absorbed by one electron of the cathode.
 2. The electron spends the extraction work W to leave the metal; the most energetic electrons leave with K_max = hν − W (eq. 7.2).
 3. Electrons that reach the anode charge the capacitor: the anode becomes negative with respect to the cathode, so a **retarding** voltage U builds up.
 4. Only electrons with K > eU can still cross; the others are turned back.
@@ -145,13 +145,13 @@ The voltmeter therefore measures K_max directly in electronvolts. (Experimentall
     },
     {
       id: "q1", n: "1", text: "The relation between the kinetic energy of the photoelectrons and the frecquency of the incoming photons is given by what relation? What type of dependence exists between the the kinetic energy of the photoelectrons and the frequency of the radiation?",
-      answer: `Einstein's relation **K_max = hν − W**.
+      answer: String.raw`Einstein's relation **K_max = hν − W**.
 
 The dependence is **linear (affine), increasing**, with slope h — not proportional, because of the −W term. K_max does not depend on the intensity of the light, and no electrons are emitted below the threshold ν₀ = W/h.`,
     },
     {
       id: "q2", n: "2", text: "In figure 7.1 the purpose of the elements is the following: A … B … C … D … (two more rows)",
-      answer: `|Fig. 7.1|Element|Purpose|
+      answer: String.raw`|Fig. 7.1|Element|Purpose|
 |---|---|---|
 |A|Hg lamp in its housing|light source with discrete Hg lines|
 |B|lens|concentrates the light on the photocell|
@@ -164,17 +164,17 @@ The dependence is **linear (affine), increasing**, with slope h — not proporti
     },
     {
       id: "q3", n: "3", text: "If 10 measurements of the same variable xᵢ are made in identical conditions, what is the average value? Write the relation for the standard deviation of the data. Write the relation for the standard deviation of the mean.",
-      answer: `$$\bar x=\frac1N\sum_{i=1}^{N}x_i\qquad s=\sqrt{\frac{\sum_{i=1}^{N}(x_i-\bar x)^2}{N-1}}\qquad s_{\bar x}=\frac{s}{\sqrt N}$$
+      answer: String.raw`$$\bar x=\frac1N\sum_{i=1}^{N}x_i\qquad s=\sqrt{\frac{\sum_{i=1}^{N}(x_i-\bar x)^2}{N-1}}\qquad s_{\bar x}=\frac{s}{\sqrt N}$$
 
 with N = 10. s describes the scatter of single readings; s_x̄ is the uncertainty of the mean, σ_Ū₀ in the table. (N − 1 because the experimental mean is used — Appendix A.1.)`,
     },
     {
       id: "q4", n: "4", text: "what is the eV (electronvolt)? What is its value in the international system of units?",
-      answer: `The energy gained by a particle of charge e (one electron) accelerated through a potential difference of 1 V. Since 2019 it is exact: **1 eV = {{exp7.eV}}**.`,
+      answer: String.raw`The energy gained by a particle of charge e (one electron) accelerated through a potential difference of 1 V. Since 2019 it is exact: **1 eV = {{exp7.eV}}**.`,
     },
     {
       id: "q5", n: "5", text: "What is the kinetic energy and velocity (as a fraction of c-speed of light) of an electron starting from rest and being accelerated under a potential difference of 10V? What if the potential difference is 100V? What if the potential difference is 10⁸V?",
-      answer: `K = eU. Classically v = √(2K/mₑ); relativistically γ = 1 + eU/(mₑc²) and v/c = √(1 − 1/γ²), with mₑc² = {{exp7.mec2}}.
+      answer: String.raw`K = eU. Classically v = √(2K/mₑ); relativistically γ = 1 + eU/(mₑc²) and v/c = √(1 − 1/γ²), with mₑc² = {{exp7.mec2}}.
 
 |U|K|v (classical)|v/c classical|γ|v/c (relativistic)|
 |---|---|---|---|---|---|
@@ -186,7 +186,7 @@ At 10 V and 100 V the classical formula is fine (γ ≈ 1). At 10⁸ V it would 
     },
     {
       id: "q6", n: "6", text: "From your data analysis, what is the lowest frequency - ν_min or (longest wavelength λ_max) for which the fotoelectric effect can occur? What is the significance of this value?",
-      answer: `Where the fitted line crosses U₀ = 0:
+      answer: String.raw`Where the fitted line crosses U₀ = 0:
 
 $$\nu_{min}=\nu_0=-\frac{b}{a},\qquad \lambda_{max}=\frac{c}{\nu_0},\qquad \sigma_{\nu_0}^2=\frac{s_b^2+\nu_0^2s_a^2+2\nu_0\,\mathrm{cov}(a,b)}{a^2}$$
 

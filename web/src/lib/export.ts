@@ -10,19 +10,30 @@ export function tableToCSV(t: ResultTable): string {
   return lines.join("\n") + "\n";
 }
 
-// Unicode → LaTeX for the symbols the engine uses in reports
-const TEX_MAP: [RegExp, string][] = [
-  [/±/g, "\\pm "], [/×10([⁻⁰¹²³⁴⁵⁶⁷⁸⁹]+)/g, "\\times10^{$1}"], [/−/g, "-"], [/μ/g, "\\mu "], [/λ/g, "\\lambda "], [/σ/g, "\\sigma "],
-  [/Λ/g, "\\Lambda "], [/Ω/g, "\\Omega "], [/ν/g, "\\nu "], [/ρ/g, "\\rho "], [/·/g, "\\cdot "], [/%/g, "\\%"], [/_/g, "\\_"],
-];
-const SUP: Record<string, string> = { "⁻": "-", "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9" };
+// Unicode → LaTeX for the symbols the engine uses in labels and reports. Each math token becomes its
+// own $…$ and adjacent ones are merged, so words stay in text mode (spaces survive) and symbols,
+// subscripts and exponents are typeset properly.
+const GREEK: Record<string, string> = {
+  α: "alpha", β: "beta", γ: "gamma", δ: "delta", ε: "varepsilon", θ: "theta", λ: "lambda", μ: "mu", µ: "mu", ν: "nu", π: "pi", ρ: "rho",
+  σ: "sigma", τ: "tau", φ: "varphi", χ: "chi", ω: "omega", Δ: "Delta", Λ: "Lambda", Ω: "Omega", Σ: "Sigma",
+};
+const SUP: Record<string, string> = { "⁻": "-", "⁺": "+", "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "½": "1/2" };
+const sup = (g: string) => g.split("").map((c) => SUP[c] ?? c).join("");
+const m = (tex: string) => `$${tex}$`;
 
 export function toTex(s: string): string {
-  let o = s;
-  for (const [re, rep] of TEX_MAP) o = o.replace(re, rep);
-  o = o.replace(/\{([⁻⁰¹²³⁴⁵⁶⁷⁸⁹]+)\}/g, (_, g: string) => "{" + g.split("").map((c) => SUP[c] ?? c).join("") + "}");
-  o = o.replace(/([⁻⁰¹²³⁴⁵⁶⁷⁸⁹]+)/g, (g: string) => "$^{" + g.split("").map((c) => SUP[c] ?? c).join("") + "}$");
-  return /\\(pm|times|mu|lambda|sigma|Lambda|Omega|nu|rho|cdot)/.test(o) ? `$${o.replace(/\$/g, "")}$` : o;
+  let o = s.replace(/([%&#])/g, "\\$1");
+  o = o.replace(/×10([⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹]+)/g, (_, g: string) => m(`\\times10^{${sup(g)}}`));
+  o = o.replace(/[⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹½]+/g, (g) => m(`^{${sup(g)}}`));
+  o = o.replace(/_(\{[^}]+\}|[\p{L}\p{Nd}′]+)/gu, (_, g: string) => {
+    const t = g.replace(/^\{|\}$/g, "");
+    return m(`_{${t.length > 1 ? `\\mathrm{${t}}` : t}}`);
+  });
+  o = o.replace(/[αβγδεθλμµνπρστφχωΔΛΩΣ]/g, (c) => m(`\\${GREEK[c]} `));
+  o = o.replace(/±/g, m("\\pm")).replace(/×/g, m("\\times")).replace(/−/g, m("-")).replace(/·/g, m("\\cdot")).replace(/√/g, m("\\surd"));
+  // merge adjacent math ("$\sigma $$_{n}$" → "$\sigma _{n}$"), then drop the space that only
+  // protected a command name from the next letter
+  return o.replace(/\$\$/g, "").replace(/\\([A-Za-z]+) (?=[_^}$])/g, "\\$1");
 }
 
 export function tableToLatex(t: ResultTable): string {

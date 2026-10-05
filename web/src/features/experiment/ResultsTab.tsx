@@ -26,7 +26,7 @@ export function ResultsTab({ def, data, setData, analysis, session }: { def: Exp
       ) : (
         <>
           <section className="headline">
-            {def.headline.map((h) => r.values[h.key] && <ValueLine key={h.key} emphasis v={{ ...r.values[h.key], label: h.label ? `${h.label}: ${r.values[h.key].label}` : r.values[h.key].label }} />)}
+            {def.headline.map((h) => r.values[h.key] && <ValueLine key={h.key} emphasis v={{ ...r.values[h.key], label: headlineLabel(h.label, r.values[h.key].label) }} />)}
             <p className="muted small">Lab rounding rule (1 significant digit in σ, 2 if it starts with 1); {constants}.{analysis.ms ? ` Computed in ${analysis.ms} ms at 50 digits.` : ""}</p>
           </section>
           {r.tables.filter((t) => t.id === "conclusions").map((t) => <TableBlock key={t.id} t={t} exportName={`exp${def.n}`} />)}
@@ -61,4 +61,9 @@ export function ResultsTab({ def, data, setData, analysis, session }: { def: Exp
       </section>
     </div>
   );
+}
+
+// "Method I" + "Λ (Method I)" → "Λ (Method I)", not "Method I: Λ (Method I)"
+function headlineLabel(prefix: string | undefined, label: string) {
+  return prefix && !label.toLowerCase().includes(prefix.toLowerCase()) ? `${prefix}: ${label}` : label;
 }

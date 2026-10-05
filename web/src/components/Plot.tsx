@@ -180,7 +180,11 @@ export function PlotSvg({ plot, width, palette = SCREEN, selected, onSelect, res
           return (
             <g key={si}>
               <path d={`M${X(s.x[0])},${Y(s.y[0]) - 7} l7,7 l-7,7 l-7,-7z`} fill={P.series[0]} stroke={P.text} strokeWidth={1} />
-              {s.label && <text x={X(s.x[0]) + 10} y={Y(s.y[0]) - 8} fontSize={11} fill={P.text}>{s.label}</text>}
+              {s.label && (
+                // below-right of the marker when it sits near the top edge, so the frame never crosses it
+                <text x={X(s.x[0]) + 12} y={Y(s.y[0]) - 8 < m.t + 14 ? Y(s.y[0]) + 20 : Y(s.y[0]) - 8} fontSize={11} fill={P.text}
+                  stroke={P.bg === "transparent" ? "var(--bg)" : P.bg} strokeWidth={3} paintOrder="stroke" strokeLinejoin="round">{s.label}</text>
+              )}
             </g>
           );
         if (s.kind !== "points") return null;
@@ -212,7 +216,7 @@ export function PlotSvg({ plot, width, palette = SCREEN, selected, onSelect, res
           <line x1={m.l} x2={m.l + pw} y1={RY(0)} y2={RY(0)} stroke={P.muted} strokeDasharray="4 4" />
           <text x={m.l - 6} y={R0 + 12} fontSize={10} fill={P.muted} textAnchor="end">resid.</text>
           {resid.x.map((x, i) => {
-            const bad = Math.abs(resid.z[i]) > 2.5;
+            const bad = resid.bad ? resid.bad[i] : Math.abs(resid.z[i]) > 2.5;
             return (
               <g key={i}>
                 <line x1={X(x)} x2={X(x)} y1={RY(0)} y2={RY(resid.y[i])} stroke={bad ? P.bad : P.series[0]} strokeWidth={2} />

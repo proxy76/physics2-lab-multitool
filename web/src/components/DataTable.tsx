@@ -5,6 +5,7 @@ import type { TableDef } from "../content/types";
 import type { EngineResult } from "../lib/engineTypes";
 import { getPath, setPath, uid } from "../lib/store";
 import { Field } from "./Field";
+import { Sym } from "./Sym";
 
 export type Row = Record<string, unknown> & { id: string; note?: string; ts?: number; excluded?: boolean };
 
@@ -76,6 +77,7 @@ export function DataTable({ def, data, onChange, result, errorField, only, rowId
       {shown.map(({ r, i }) => {
         const derived = eng?.rows.find((x) => x.id === r.id);
         const flag = flags[r.id]?.outlier;
+        const expected = !flag ? flags[r.id]?.expected : undefined;
         return (
           <article key={r.id} className={`row-card${r.excluded ? " excluded" : ""}${flag ? " flagged" : ""}`}>
             <header className="row-head">
@@ -83,11 +85,12 @@ export function DataTable({ def, data, onChange, result, errorField, only, rowId
               {r.ts ? <span className="row-time num">{time(r.ts as number)}</span> : null}
             </header>
             {flag && <p className="row-flag">{flag} σ from the line — re-measure?</p>}
+            {expected && <p className="row-flag expected">{expected[0].toUpperCase() + expected.slice(1)}.</p>}
             <div className="row-fields">
               {cols.map((c) =>
                 c.kind === "fixed" ? (
                   <div key={c.key} className="field fixed">
-                    <span className="field-label">{c.label}</span>
+                    <span className="field-label"><Sym text={c.label} /></span>
                     <span className="num fixed-val">{String(r[c.key] ?? "")}{c.unit ? ` ${c.unit}` : ""}</span>
                   </div>
                 ) : c.kind === "readings" ? (
@@ -102,7 +105,7 @@ export function DataTable({ def, data, onChange, result, errorField, only, rowId
             {derived && def.derived && (
               <dl className="derived num">
                 {def.derived.map((d) => (derived[d.key] !== undefined && derived[d.key] !== "" ? (
-                  <div key={d.key}><dt>{d.label}{d.unit ? ` (${d.unit})` : ""}</dt><dd>{String(derived[d.key])}</dd></div>
+                  <div key={d.key}><dt><Sym text={d.label} />{d.unit ? ` (${d.unit})` : ""}</dt><dd>{String(derived[d.key])}</dd></div>
                 ) : null))}
               </dl>
             )}
@@ -142,7 +145,7 @@ function Readings({ label, unit, values, onChange, errorPrefix }: { label: strin
   };
   return (
     <fieldset className="readings">
-      <legend>{label}{unit ? ` (${unit})` : ""}</legend>
+      <legend><Sym text={label} />{unit ? ` (${unit})` : ""}</legend>
       <div className="readings-grid">
         {values.map((v, j) => (
           <Field key={j} label={`${j + 1}`} value={v} onChange={(x) => set(j, x)}

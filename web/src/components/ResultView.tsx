@@ -2,16 +2,32 @@
 // show-your-work steps and grouped advanced values.
 import { useState } from "react";
 import type { EngineResult, ResultTable, Value } from "../lib/engineTypes";
+import { roundSig } from "../lib/digits";
 import { copy, tableToCSV, tableToLatex, tableToMarkdown } from "../lib/export";
+import { useAppState } from "../lib/store";
 import { Plot, download } from "./Plot";
+import { Sym } from "./Sym";
 import { Tex } from "./Tex";
 import { toast } from "./Toast";
 
+// Tap a value to see it at full precision (Settings → digits); the report string stays the headline.
 export function ValueLine({ v, emphasis }: { v: Value; emphasis?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const digits = useAppState((s) => s.settings.fullDigits);
   return (
     <div className={`value-line${emphasis ? " emph" : ""}`}>
-      <span className="value-label">{v.label}</span>
-      <span className="value-report num">{v.report}</span>
+      <button type="button" className="value-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <span className="value-label"><Sym text={v.label} /></span>
+        <span className="value-report num">{v.report}</span>
+      </button>
+      {open && (
+        <p className="value-full num">
+          {roundSig(v.value, digits)}
+          {v.unc ? ` ± ${roundSig(v.unc, Math.min(digits, 6))}` : ""}
+          {v.unit ? ` ${v.unit}` : ""}
+          <span className="muted small"> ({digits} significant digits; not rounded to the lab rule)</span>
+        </p>
+      )}
     </div>
   );
 }
@@ -21,7 +37,7 @@ export function Warnings({ r }: { r: EngineResult }) {
   return (
     <ul className="warnings" aria-live="polite">
       {r.warnings.map((w, i) => (
-        <li key={i} className={`warn-${w.severity}`}>{w.message}</li>
+        <li key={i} className={`warn-${w.severity}`}><Sym text={w.message} /></li>
       ))}
     </ul>
   );
@@ -35,7 +51,7 @@ export function TableBlock({ t, exportName }: { t: ResultTable; exportName: stri
       <div className="table-scroll">
         <table className="rich-table num">
           <thead>
-            <tr>{t.columns.map((c) => <th key={c.key}>{c.label}{c.unit ? <span className="th-unit"> ({c.unit})</span> : null}</th>)}</tr>
+            <tr>{t.columns.map((c) => <th key={c.key}><Sym text={c.label} />{c.unit ? <span className="th-unit"> ({c.unit})</span> : null}</th>)}</tr>
           </thead>
           <tbody>
             {t.rows.map((r, i) => (
@@ -87,7 +103,7 @@ export function Compare({ r }: { r: EngineResult }) {
       <ul>
         {c.map((x, i) => (
           <li key={i}>
-            <span>{x.label}</span>
+            <span><Sym text={x.label} /></span>
             <span className="num">Δ = {x.dev_pct} %{x.z ? `, z = ${x.z}` : ""}</span>
             {x.verdict && <span className={x.verdict.startsWith("compatible") ? "ok" : "bad"}>{x.verdict}</span>}
           </li>
