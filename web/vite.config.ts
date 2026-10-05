@@ -12,7 +12,7 @@ export default defineConfig({
     VitePWA({
       registerType: "prompt",
       injectRegister: false,
-      includeAssets: ["icon.svg", "pyodide/*", "py/*"],
+      includeAssets: ["icon.svg", "theme.js", "pyodide/*", "py/*"],
       manifest: {
         name: "Lab Companion — Physics 2",
         short_name: "Lab Companion",

@@ -115,6 +115,8 @@ test("Run-screen controls are at least 48 px tall", async ({ page }) => {
 });
 
 test("plots export as report-ready SVG and PNG", async ({ page }) => {
+  await page.goto("/");
+  await engineReady(page);
   await loadExample(page, "6");
   await page.goto("#/exp/6/results");
   const fig = page.locator("figure.plot").first();

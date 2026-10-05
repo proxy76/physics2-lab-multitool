@@ -8,10 +8,7 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <title>Lab Companion</title>
-    <script>
-      // apply the saved theme before first paint (no flash in a dark room)
-      try { var t = localStorage.getItem("lc-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
-    </script>
+    <script src="/theme.js"></script>
   </head>
   <body>
     <div id="root"></div>

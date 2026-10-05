@@ -1,0 +1,49 @@
+# Lab Companion — static site behind Caddy (decision D4).
+# Caddy gets and renews the HTTPS certificate by itself. HTTPS is required: the service worker
+# (offline mode), the Wake Lock API and "Add to home screen" only work on a secure origin.
+#
+#   LAB_DOMAIN=lab.example.org caddy run --config /etc/caddy/Caddyfile
+#
+# The Docker image sets LAB_DOMAIN to ":80" when you terminate TLS somewhere else.
+
+{$LAB_DOMAIN::80} {
+	root * "{$LAB_ROOT:/srv/lab-companion}"
+	encode zstd gzip
+
+	# Optional: keep the site to the team. Create the hash with `caddy hash-password`.
+	# basic_auth {
+	# 	team $2a$14$replace.with.the.output.of.caddy.hash-password
+	# }
+
+	# Correct types for the Python runtime (older Caddy/Go builds guess them wrong)
+	@wasm path *.wasm
+	header @wasm Content-Type application/wasm
+	@mjs path *.mjs
+	header @mjs Content-Type "text/javascript; charset=utf-8"
+	@manifest path /manifest.webmanifest
+	header @manifest Content-Type application/manifest+json
+
+	# Hashed build output never changes: cache for a year
+	@hashed path /assets/*
+	header @hashed Cache-Control "public, max-age=31536000, immutable"
+
+	# Everything else keeps its name across deploys (index.html, sw.js, /py/labcalc.zip, /pyodide/*):
+	# always revalidate (a cheap 304), so a new deploy is picked up and the service worker can
+	# offer the update. Offline use is served by the service worker, not by this cache.
+	@named not path /assets/*
+	header @named Cache-Control "no-cache"
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# Pyodide compiles WebAssembly ('wasm-unsafe-eval'); KaTeX and React set inline styles.
+		# Tested by web/tests/e2e/csp.spec.ts, which reads this line.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
+		-Server
+	}
+
+	# Hash routing (#/exp/5/run) means every page is index.html; this only catches typos
+	try_files {path} /index.html
+	file_server
+}

@@ -1,0 +1,13 @@
+# keep the build context small: dependencies and outputs are rebuilt inside the image
+**/node_modules
+**/.venv
+**/__pycache__
+web/dist
+web/dev-dist
+web/public/pyodide
+web/public/py
+web/test-results
+web/playwright-report
+.git
+*.pdf
+*.stackdump
