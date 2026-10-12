@@ -97,7 +97,7 @@ export function DataTable({ def, data, onChange, result, errorField, only, rowId
                   <Readings key={c.key} label={c.label} unit={c.unit} values={(r[c.key] as string[]) ?? []}
                     onChange={(v) => update(i, { [c.key]: v })} errorPrefix={errorField && errorField.includes(`[${i}].readings`) ? errorField : null} />
                 ) : (
-                  <Field key={c.key} label={c.label} unit={c.unit} text={c.kind === "text"} value={String(r[c.key] ?? "")}
+                  <Field key={c.key} label={c.label} unit={c.unit} hint={c.hint} text={c.kind === "text"} value={String(r[c.key] ?? "")}
                     error={fieldErr(i, c.key)} onChange={(v) => update(i, { [c.key]: v })} />
                 ),
               )}

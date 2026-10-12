@@ -34,6 +34,16 @@ Brief milestones M0–M4 are complete, and most of M5 (device QA) is done. Every
   - "How" texts that mix a paragraph, a list and a closing line render as a real list (Exp 7 A–E).
   - Exp 6: example data fills the shared x = 0 spectrum, and the step explains how it is reused for all three materials.
 
+## 2026-10-12: Exp 6 beginner guide and Analysis tab
+
+- Exp 6 Run steps were rewritten as 17 beginner steps. "How" opens by default (`RunStep.expanded`). A "What goes in each box" list (`RunStep.cells`) explains each input. Each material has a measuring-loop step and a "done" step.
+- Live "the app calculated" panels (`RunStep.panel`) show Area = ½(R−L)H, Area/t and ln(Area/t) with the row's numbers, plus the ×e check and, on the "done" steps, μ with the plot.
+- New rows pre-fill L and R from the previous spectrum, or from the x = 0 spectrum for the first row (`Entry.carry`).
+- New **Analysis** tab (`ExperimentDef.analysis`, Exp 6 only, `#/exp/6/analysis/<Al|Fe|Pb>`). It covers §6.5–6.7 for one material at a time from that table alone: Q1, the completed table with worked cells, millimetre-paper scales and points, graphical μ (inputs moved here from Results), the least-squares sums table and Appendix B formulas, rounding, the conclusions row, NIST and Q6.
+- The engine provides it all as `extra.guide[sym]` (`exp6._guide_material` / `_guide_fit`). `linfit.steps` now brackets a negative slope ("−(−0.2)").
+- `npm run walkthrough` now opens only collapsed "How" sections.
+- e2e: on this machine the default parallel workers starve Pyodide on the android project (stuck at "Starting Python"). Run `npx playwright test --workers=2`: 26/26 pass.
+
 ## Next steps
 
 1. **Push**, then check the first CI run, especially the Docker job and the Caddy e2e step (`git push origin main`).

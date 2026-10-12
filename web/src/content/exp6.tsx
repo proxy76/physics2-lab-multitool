@@ -1,7 +1,34 @@
-import type { ExperimentDef, FieldDef, TableDef } from "./types";
+import type { ExperimentDef, RunStep, TableDef } from "./types";
 import { LiveTable } from "../components/LiveTable";
+import { Exp6Analysis, MATS, materialPanel, materialResult, zeroPanel } from "./exp6Guide";
 
-const MATS = ["Al", "Fe", "Pb"] as const;
+const MAT_NAME: Record<string, string> = { Al: "Aluminium", Fe: "Iron", Pb: "Lead" };
+const EXAMPLE_X: Record<string, string> = { Al: "1", Fe: "0.3", Pb: "0.2" };
+
+// Two Run steps per material: the measuring loop (one table row per stack), then its result.
+const matSteps = (sym: string, i: number): RunStep[] => [
+  {
+    id: sym.toLowerCase(), role: ["OP", "RD", "AN"], title: `${MAT_NAME[sym]}: one row per stack (thickness, measure, read the peak)`, expanded: true,
+    safety: sym === "Pb" ? "Lead is toxic: wear gloves or wash your hands afterwards. No food at the bench." : undefined,
+    how: `Repeat this loop for each ${sym} thickness:\n\n1. **OP** ${i > 0 ? "takes the previous material out, then " : ""}puts ${sym} sheets (only ${sym}!) flat and centred in the absorber holder.\n2. **OP** measures the total thickness of the stack with the caliper (or adds up the labels) and says it **in cm**: 1 mm = 0.1 cm.\n3. **AN** taps **“Next ${sym} thickness”** and types x.\n4. Start CASSY (stopwatch button) and the app's timer together. Wait the full time.\n5. **RD** reads the new peak exactly as for x = 0, and AN types it in. L and R are pre-filled from the previous spectrum: change them only if the peak's feet have moved.\n6. Look at the box under the inputs: the app shows Area, Area/t and ln(Area/t), and whether the stack is thick enough yet.\n7. Add sheets and start again at 1.`,
+    cells: [
+      { name: "x (cm)", text: `total thickness of all ${sym} sheets in the holder, in cm (e.g. ${EXAMPLE_X[sym]})` },
+      { name: "L, R (ch)", text: "the peak's feet. Pre-filled from the previous spectrum: keep them if the feet are still there" },
+      { name: "H (counts)", text: "the new peak height. It gets smaller as the stack gets thicker" },
+      { name: "t (s)", text: "leave empty to use the measuring time you chose" },
+    ],
+    timer: { seconds: 120, label: "Spectrum 120 s" },
+    entry: { kind: "row", table: sym, fields: ["x", "L", "R", "H", "t"], addLabel: `Next ${sym} thickness`, carry: { L: "zero.L", R: "zero.R" } },
+    meanwhile: "While a spectrum runs, OP prepares and measures the next stack.",
+    decision: `If the app says the rate has not yet dropped by ×2.72, add more sheets. Not enough ${sym}? Use all of it and note this in the report.`,
+    panel: materialPanel(sym),
+  },
+  {
+    id: `${sym.toLowerCase()}-done`, role: ["ALL"], title: `${MAT_NAME[sym]} done: check the result before moving on`, expanded: true,
+    how: `The app has already analysed your ${sym} table. Look at the result below:\n- μ within a few % of the NIST value? Good.\n- A point flagged, or μ far off? Re-measure that thickness now, while the setup is still in place.\n\nThe button opens the full step-by-step analysis for ${sym}, with every number you need for the report.`,
+    panel: materialResult(sym),
+  },
+];
 
 const empty = () => ({
   x_unit: "cm",
@@ -16,33 +43,18 @@ const matTable = (i: number, sym: string): TableDef => ({
   title: `${sym} — one table per material (§6.4)`,
   path: `materials.${i}.rows`,
   columns: [
-    { key: "x", label: "Thickness", unit: "cm" },
-    { key: "t", label: "t", unit: "s" },
-    { key: "H", label: "Height", unit: "counts" },
-    { key: "L", label: "Left channel", unit: "ch" },
-    { key: "R", label: "Right channel", unit: "ch" },
+    { key: "x", label: "Thickness", unit: "cm", hint: "whole stack, in cm" },
+    { key: "t", label: "t", unit: "s", hint: "empty = default time" },
+    { key: "H", label: "Height", unit: "counts", hint: "peak top above its feet" },
+    { key: "L", label: "Left channel", unit: "ch", hint: "left foot of the peak" },
+    { key: "R", label: "Right channel", unit: "ch", hint: "right foot, > L" },
   ],
   defaults: {},
   engineTable: `data.${sym}`,
   derived: [{ key: "A", label: "Area", unit: "counts" }, { key: "rate", label: "Area/t", unit: "s⁻¹" }, { key: "ln", label: "ln(Area/t)" }],
   rowLabel: (r, j) => `${sym} #${j + 1}` + (r.x ? ` · x = ${r.x} cm` : ""),
-  note: "Leave t empty to use the default measuring time set under Data → parameters.",
+  note: "Leave t empty to use the default measuring time (Data → parameters). The x = 0 row comes from the shared no-absorber spectrum unless you add one here. The Analysis tab works out every calculated cell.",
 });
-
-const graphical = (i: number, sym: string): FieldDef[] => [
-  { path: `materials.${i}.graphical.x1`, label: `${sym}: P₁ x`, unit: "cm" },
-  { path: `materials.${i}.graphical.y1`, label: `${sym}: P₁ ln(Area/t)` },
-  { path: `materials.${i}.graphical.x2`, label: `${sym}: P₂ x`, unit: "cm" },
-  { path: `materials.${i}.graphical.y2`, label: `${sym}: P₂ ln(Area/t)` },
-  { path: `materials.${i}.graphical.max_x1`, label: `${sym}: steepest line P₁ x` },
-  { path: `materials.${i}.graphical.max_y1`, label: `${sym}: steepest line P₁ y` },
-  { path: `materials.${i}.graphical.max_x2`, label: `${sym}: steepest line P₂ x` },
-  { path: `materials.${i}.graphical.max_y2`, label: `${sym}: steepest line P₂ y` },
-  { path: `materials.${i}.graphical.min_x1`, label: `${sym}: shallowest line P₁ x` },
-  { path: `materials.${i}.graphical.min_y1`, label: `${sym}: shallowest line P₁ y` },
-  { path: `materials.${i}.graphical.min_x2`, label: `${sym}: shallowest line P₂ x` },
-  { path: `materials.${i}.graphical.min_y2`, label: `${sym}: shallowest line P₂ y` },
-];
 
 export const exp6: ExperimentDef = {
   id: "6",
@@ -74,74 +86,89 @@ export const exp6: ExperimentDef = {
       "Answer Q1 (the linear form) — the analysis starts with it (§6.5).",
       "Plan thicknesses: 5–7 values from 0 to at least 1/μ for each material (see above). Al needs the most sheets.",
       "Learn the CASSY steps of §6.3.1.",
+      "Try a dry run: Session → Load example data, then walk the Run steps and open the Analysis tab to see what the app computes for you.",
     ],
     why: "Only full-energy photons that crossed the absorber without interacting end up in the photopeak; scattered photons fall into the Compton region. Using the photopeak area approximates the narrow-beam (good-geometry) condition that Lambert's law assumes.",
     duration: "≈ 60–75 min",
   },
   steps: [
     {
-      id: "identify", role: ["ALL"], title: "Identify source holder, absorber holder, detector, HV supply, PC",
-      how: "Fig. 6.2: source holder on top, absorber plate holder (green outline), scintillation detector with photomultiplier below facing up, high-voltage supply with display, CASSY interface and PC.",
+      id: "identify", role: ["ALL"], title: "Find the parts of the setup on the bench", expanded: true,
+      how: "Look at the bench and find each item (Fig. 6.2 of the guide):\n- **Source holder**, at the top. It stays empty until the professor brings the ¹³⁷Cs source. Never put the source in yourself.\n- **Absorber holder**, the plate in the middle (green outline in Fig. 6.2). The metal sheets go here, between the source and the detector.\n- **Detector**, the cylinder underneath, facing up. It registers the γ photons.\n- **High-voltage supply**, the box with a small display. It powers the detector.\n- **PC with CASSY Lab**, which draws the spectrum.\n- **Three stacks of sheets**: aluminium (light and shiny), iron (grey, a magnet sticks to it) and lead (very heavy, dull grey, soft).",
     },
     {
-      id: "hv", role: ["OP"], title: "Switch the detector supply on; check the display reads 0.67 kV",
+      id: "hv", role: ["OP"], title: "Switch on the detector supply and check it shows 0.67 kV", expanded: true,
+      how: "1. Switch on the high-voltage box, and the PC if it is off.\n2. Wait a few seconds, then read the box's display.\n3. It must show **0.67 kV**. If it shows anything else, do not touch the knob: call the professor.",
       safety: "Do not adjust the high voltage.",
       verify: ["HV display shows 0.67 kV"],
     },
     {
-      id: "cassy", role: ["AN"], title: "Start CASSY Lab and set Gain Box A1 to about −5.81",
-      how: "1. Launch CASSYlab — a “Settings” window opens.\n2. Click the red button to activate the measuring channel — “Measuring parameters” opens.\n3. Move the Gain Box A1 slider to ≈ −5.81.\n4. Close both windows.\n5. If a measuring time can be set, use the same fixed time (e.g. 120 s) for every spectrum. Otherwise note the time shown in the upper-right corner.",
+      id: "cassy", role: ["AN"], title: "Open CASSY Lab and switch on the measuring channel", expanded: true,
+      how: "1. On the PC, double-click **CASSY Lab**. A window called **Settings** opens.\n2. In that window, click the **red button**. This switches on the measuring channel and opens a second window, **Measuring parameters**.",
+      see: "Two windows are open: “Settings” and “Measuring parameters”.",
+    },
+    {
+      id: "gain", role: ["AN"], title: "Set Gain Box A1 to about −5.81, then close both windows", expanded: true,
+      how: "1. In **Measuring parameters**, find the slider labelled **Gain Box A1**.\n2. Drag it until the number next to it reads about **−5.81**. Close is good enough.\n3. Close **Measuring parameters**, then close **Settings**.",
+      see: "An empty graph. The spectrum appears here once you start a measurement.",
+    },
+    {
+      id: "time", role: ["AN"], title: "Choose one measuring time for every spectrum (120 s works)", expanded: true,
+      how: "Every spectrum is measured for the **same time**, so their peaks can be compared directly. 120 s is a good choice: about 20 spectra × 2 min is 40 min of counting.\n\nIf CASSY lets you set a measuring time, set it to this value. If it does not, start the app's timer together with CASSY and stop CASSY when the timer rings. The elapsed time is shown in CASSY's top-right corner.",
+      cells: [{ name: "Measuring time", text: "seconds per spectrum, e.g. 120. Type it once here. Every table row uses it unless you type a different t in that row." }],
       verify: ["Where CASSY lets you fix the measuring time", "CASSY peak tools (Gaussian fit / integral) as an optional cross-check"],
       entry: { kind: "fields", fields: [{ path: "t_default", label: "Measuring time used for every spectrum", unit: "s" }] },
     },
     {
       id: "bg", role: ["AN"], title: "Optional: record a background spectrum (no source)", optional: true,
-      how: "Not needed for the photopeak triangle method, but it shows you where the peak region is empty.",
+      how: "Not needed for the triangle method. It shows what the screen looks like with no source, so the peak region is easy to recognise later.",
     },
     {
-      id: "zero", role: ["OP", "RD", "AN"], title: "Professor places the source; measure with no absorber (x = 0)",
+      id: "zero", role: ["OP", "AN"], title: "No sheets: professor places the source, then measure (x = 0)", expanded: true,
+      safety: "Only the professor handles the source. Keep your hands out of the beam path.",
+      how: "1. Check that the absorber holder is **empty**. x = 0 means no material.\n2. Ask the professor to place the ¹³⁷Cs source.\n3. In CASSY, click the **stopwatch button** to start. At the same moment, start the app's timer below.\n4. Wait for the full time. If CASSY does not stop by itself, stop it when the timer rings.",
       timer: { seconds: 120, label: "Spectrum 120 s" },
-      see: "A sharp photopeak on the right and the broad Compton continuum on the left (Fig. 6.3).",
-      how: "Read the photopeak as a triangle (Fig. 6.4): left foot channel L (A), right foot channel R (B), height H above the baseline (C). Area = ½(R − L)·H. Use the same convention for every spectrum — consistency matters more than perfection.\n\nThis x = 0 spectrum is used for all three materials. If you re-measure x = 0 later (to check for drift), enter it as a row of that material's table; that material then uses its own.",
+      see: "The spectrum grows: a broad bump on the left (the Compton region) and **one sharp, tall peak on the right**. That is the **photopeak** (Fig. 6.3). Only the photopeak is used.",
+    },
+    {
+      id: "zero-read", role: ["RD", "AN"], title: "Read the photopeak as a triangle: L, R and H", expanded: true,
+      how: "Treat the photopeak as a triangle (Fig. 6.4: points A, B and C).\n\n1. **L**: put the mouse where the peak starts to rise on the left (its left foot, A). Read the **channel number** on the horizontal axis.\n2. **R**: do the same at the right foot (B), where the peak is back down.\n3. **H**: put the mouse on the top of the peak (C) and read the **counts** on the vertical axis. If the feet are not at 0 counts, subtract the count level at the feet: H = top − feet.\n4. RD says the three numbers aloud and AN types them in.\n\nThe peak stays in the same place for every spectrum, so later you usually keep the same L and R and read only the new H. Pick the feet carefully once and then use the same rule every time: consistency matters more than perfection.",
+      cells: [
+        { name: "L (ch)", text: "channel number of the left foot of the peak" },
+        { name: "R (ch)", text: "channel number of the right foot. Always bigger than L" },
+        { name: "H (counts)", text: "height of the peak top above its feet" },
+        { name: "t (s)", text: "leave empty to use the measuring time you chose" },
+      ],
+      verify: ["How CASSY shows the channel and counts under the mouse (hover, or right-click → coordinates)"],
       entry: { kind: "fields", fields: [{ path: "zero.L", label: "L (left foot)", unit: "ch" }, { path: "zero.R", label: "R (right foot)", unit: "ch" }, { path: "zero.H", label: "H (height)", unit: "counts" }, { path: "zero.t", label: "t (empty = default)", unit: "s" }] },
+      panel: zeroPanel,
     },
     {
-      id: "al", role: ["OP", "RD", "AN"], title: "Aluminium: add sheets, record total thickness, measure, read the triangle",
-      how: "Stack sheets flat and centred on the beam axis. Measure the total thickness with a caliper/micrometer (or add the labelled values). 5–7 thicknesses from 0 up to ≳ {{exp6.materials.0.x_e}} cm.",
-      timer: { seconds: 120, label: "Spectrum 120 s" },
-      entry: { kind: "row", table: "Al", fields: ["x", "L", "R", "H", "t"], addLabel: "Next Al thickness" },
-      meanwhile: "During each spectrum OP prepares and measures the next stack; AN computes nothing by hand — the app does it.",
-      decision: "If the largest thickness has not reduced Area/t by ≈ e (×2.7), add sheets. Not enough Al? Use all of it and note this in the report.",
-      live: "plot",
+      id: "plan", role: ["ALL"], title: "Plan the thicknesses: 5–7 per material, the thickest about 1/μ", expanded: true,
+      how: "Each material needs **5–7 different thicknesses**, from thin to thick. The thickest stack must reduce the rate by at least e ≈ 2.7 (the guide requires it). By the NIST values, that means a total thickness of at least:\n- **Al**: about {{exp6.materials.0.x_e}} cm (for example 1, 2, 3, 4, 5, 6 cm)\n- **Fe**: about {{exp6.materials.1.x_e}} cm (for example 0.3, 0.6, 1.0, 1.4, 1.8, 2.2 cm)\n- **Pb**: about {{exp6.materials.2.x_e}} cm (for example 0.2, 0.4, 0.6, 0.8, 1.0 cm)\n\nUse what the sheets allow. **Never mix materials in one stack.** The x = 0 spectrum you just measured counts for all three materials. While you measure, the app tells you when a material has reached the factor e.",
     },
-    {
-      id: "fe", role: ["OP", "RD", "AN"], title: "Iron: repeat with Fe sheets only — never mix materials",
-      how: "Thicknesses from 0 to ≳ {{exp6.materials.1.x_e}} cm. The x = 0 measurement is shared; re-measure it if time allows to detect drift.",
-      timer: { seconds: 120, label: "Spectrum 120 s" },
-      entry: { kind: "row", table: "Fe", fields: ["x", "L", "R", "H", "t"], addLabel: "Next Fe thickness" },
-      live: "plot",
-    },
-    {
-      id: "pb", role: ["OP", "RD", "AN"], title: "Lead: repeat with Pb sheets only",
-      how: "Thicknesses from 0 to ≳ {{exp6.materials.2.x_e}} cm.",
-      safety: "Lead is toxic — gloves or wash hands afterwards.",
-      timer: { seconds: 120, label: "Spectrum 120 s" },
-      entry: { kind: "row", table: "Pb", fields: ["x", "L", "R", "H", "t"], addLabel: "Next Pb thickness" },
-      live: "plot",
-    },
+    ...MATS.flatMap((sym, i) => matSteps(sym, i)),
     {
       id: "save", role: ["AN"], title: "Save the spectra in CASSY and photograph the screen",
+      how: "Save the CASSY file (File → Save) and take a photo of the screen with the spectra for the report. Then note what you measured the thicknesses with.",
+      cells: [{ name: "Thickness instrument", text: "what you measured x with and its smallest division, e.g. “caliper 0.05 mm”. Needed for Q2." }],
       entry: { kind: "fields", fields: [{ path: "thickness_tool", label: "Thickness instrument and least count (for Q2)", text: true, placeholder: "e.g. caliper 0.05 mm" }] },
     },
-    { id: "finish", role: ["ALL"], title: "Professor removes the source; shut down", safety: "Wash your hands after handling lead." },
+    {
+      id: "finish", role: ["ALL"], title: "Professor removes the source; switch off; go to the Analysis tab",
+      safety: "Wash your hands after handling lead.",
+      how: "Once the source is out, switch off the high voltage and close CASSY. Your analysis is already done: the **Analysis** tab works through the guide's §6.5–6.7 for each material, with every number in its formula.",
+    },
   ],
   cheat: [
-    "Detector on, HV display 0.67 kV. CASSYlab → red button → Gain Box A1 ≈ −5.81 → close windows.",
-    "Same measuring time for every spectrum (e.g. 120 s).",
-    "x = 0 spectrum: triangle L, R, H (Fig. 6.4). Area = ½(R−L)H.",
-    "Al, then Fe, then Pb: 5–7 thicknesses each, up to ≳ 1/μ (Al ≈ 5 cm, Fe ≈ 1.7 cm, Pb ≈ 0.8 cm).",
-    "Never mix materials in a stack. Same triangle convention every time.",
-    "Save spectra + photo of the screen. Note the thickness instrument for Q2.",
+    "Detector on: display shows 0.67 kV (don't touch the knob).",
+    "CASSY Lab → red button → Gain Box A1 ≈ −5.81 → close both windows.",
+    "Same measuring time for every spectrum (120 s). Start = CASSY stopwatch button + app timer.",
+    "x = 0 (no sheets; the professor places the source): read L (left foot), R (right foot), H (peak height).",
+    "Per material: 5–7 stacks of that material only, the thickest ≳ 1/μ (Al ≈ 5 cm, Fe ≈ 1.7 cm, Pb ≈ 0.8 cm). x in cm.",
+    "Per stack: type x → measure → read H (L and R usually stay the same) → read the app's ×e note.",
+    "After each material: check μ on its “done” step. Analysis tab = §6.5–6.7 worked out with your numbers.",
+    "Save the spectra + photo of the screen. Note the thickness instrument (Q2).",
   ],
   tables: MATS.map((s, i) => matTable(i, s)),
   params: [
@@ -152,12 +179,8 @@ export const exp6: ExperimentDef = {
     { path: "zero.t", label: "x = 0: time (empty = default)", unit: "s" },
     { path: "thickness_tool", label: "Thickness instrument (Q2)", text: true },
   ],
-  resultInputs: MATS.map((s, i) => ({
-    title: `Graphical method — ${s}`,
-    help: "On your millimetre-paper graph of ln(Area/t) vs x, draw the best line and read two points far apart on it (not data points). For the uncertainty also read two points on the steepest and on the shallowest acceptable lines. μ = −slope.",
-    fields: graphical(i, s),
-  })),
   initialData: empty,
+  analysis: Exp6Analysis,
   headline: [{ key: "Al.mu", label: "Al" }, { key: "Fe.mu", label: "Fe" }, { key: "Pb.mu", label: "Pb" }],
   complete: (d) => (d.materials || []).every((m: { rows: Record<string, string>[] }) => m.rows.filter((r) => r.x && r.H && r.L && r.R).length >= 3),
   livePanel: (r) =>
@@ -225,7 +248,7 @@ $$z=\frac{|\mu_{graph}-\mu_{LSQ}|}{\sqrt{\sigma_{graph}^2+\sigma_{LSQ}^2}}$$
 
 σ_graph comes from the steepest/shallowest-line method, σ_LSQ = s_a. The difference is **significant if z > 2**. Usually z < 2: the hand-drawn line agrees with least squares within its (larger) uncertainty; least squares is objective and gives a smaller, statistically defined σ.
 
-Enter your graph points under Results → Graphical method; the table below fills in.`,
+Enter your graph points in the Analysis tab (step 4, one material at a time); the table below fills in.`,
       live: (r) => r?.extra?.q6 ? <LiveTable title="Your data" cols={[["mat", "Material"], ["graph", "μ graph"], ["lsq", "μ LSQ"], ["diff", "|Δμ|"], ["z", "z"]]}
         rows={Object.entries(r.extra.q6).map(([mat, v]) => ({ mat, ...(v as Record<string, string>), z: (v as Record<string, string>).z ?? "—" }))} /> : null,
     },

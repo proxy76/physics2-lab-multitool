@@ -88,7 +88,7 @@ export function App() {
   let page;
   switch (route[0]) {
     case "exp":
-      page = route[1] ? <ExperimentView id={route[1]} tab={route[2]} /> : <ExperimentsList />;
+      page = route[1] ? <ExperimentView id={route[1]} tab={route[2]} sub={route[3]} /> : <ExperimentsList />;
       break;
     case "calc":
       page = <Calculator tool={route[1]} />;

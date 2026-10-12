@@ -42,7 +42,9 @@ function RowEntry({ def, entry, data, setData, analysis }: { def: ExperimentDef;
   const [sel, setSel] = useState<string | null>(null);
   const selected = rows.find((r) => r.id === sel) ?? firstIncomplete ?? rows[rows.length - 1];
   const add = () => {
-    const r = newRow(table, entry.defaults);
+    const prev = rows[rows.length - 1];
+    const carried = Object.fromEntries(Object.entries(entry.carry ?? {}).map(([k, path]) => [k, String((prev ? prev[k] : getPath(data, path)) ?? "")]));
+    const r = newRow(table, { ...entry.defaults, ...carried });
     setData(setPath(data, table.path, [...rows, r]));
     setSel(r.id);
   };
@@ -132,12 +134,12 @@ export function LivePane({ def, data, analysis, kind }: { def: ExperimentDef; da
 export function RunTab({ def, session, data, setData, analysis }: { def: ExperimentDef; session: Session; data: unknown; setData: SetData; analysis: Analysis }) {
   const role = useAppState((s) => s.settings.role);
   const [cheat, setCheat] = useState(false);
-  const [howOpen, setHowOpen] = useState(false);
   const steps = def.steps;
   const i = Math.min(session.step, steps.length - 1);
   const step = steps[i];
+  const [howOpen, setHowOpen] = useState(!!step.expanded);
   useWakeLock(true);
-  useEffect(() => setHowOpen(false), [i]);
+  useEffect(() => setHowOpen(!!steps[i].expanded), [i, steps]);
 
   const goStep = (n: number) => updateSession(session.id, (s) => ({ ...s, step: Math.max(0, Math.min(steps.length - 1, n)) }));
   const touch = useRef<{ x: number; y: number } | null>(null);
@@ -190,6 +192,16 @@ export function RunTab({ def, session, data, setData, analysis }: { def: Experim
               {howOpen && <Rich text={step.how} />}
             </div>
           )}
+          {step.cells && (
+            <div className="cells">
+              <p className="cells-label">What goes in each box</p>
+              <dl>
+                {step.cells.map((c) => (
+                  <div key={c.name}><dt><Inline text={c.name} /></dt><dd><Inline text={c.text} /></dd></div>
+                ))}
+              </dl>
+            </div>
+          )}
           {step.see && <p className="see"><span className="see-label">You should see</span> <Inline text={step.see} /></p>}
           {(step.timer || step.stopwatch) && (
             <div className="btn-row">
@@ -198,6 +210,7 @@ export function RunTab({ def, session, data, setData, analysis }: { def: Experim
             </div>
           )}
           {step.entry && <EntryView def={def} entry={step.entry} data={data} setData={setData} analysis={analysis} />}
+          {step.panel?.(analysis.result, data)}
           {step.decision && <p className="decision"><span className="decision-label">If</span> <Inline text={step.decision.replace(/^If /, "")} /></p>}
           {step.meanwhile && <p className="meanwhile"><span className="meanwhile-label">Meanwhile</span> <Inline text={step.meanwhile} /></p>}
           {step.verify && (

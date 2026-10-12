@@ -259,6 +259,11 @@ def compare_slopes(a1, s1, a2, s2):
     return d, (d / den if den > 0 else None)
 
 
+def _paren(s: str) -> str:
+    """Bracket a negative number after a minus sign: "−(−0.2)", not "−−0.2"."""
+    return f"({s})" if s.startswith("-") else s
+
+
 def steps(fit: Fit, xs: str = "x", ys: str = "y", sig: int = 6) -> list[dict]:
     """Show-your-work steps using the guide's raw-sum notation (B.6–B.11)."""
     from .rounding import tex_sig as t
@@ -276,7 +281,7 @@ def steps(fit: Fit, xs: str = "x", ys: str = "y", sig: int = 6) -> list[dict]:
                     "substituted": rf"a=\frac{{{n}\cdot{t(S['Sxy'], sig)}-{t(S['Sx'], sig)}\cdot{t(S['Sy'], sig)}}}{{{n}\cdot{t(S['Sxx'], sig)}-({t(S['Sx'], sig)})^2}}",
                     "result": t(fit.a, sig + 2)})
         out.append({"title": "Intercept b (B.8)", "latex": r"b=\frac{1}{n}S_y-a\frac{1}{n}S_x",
-                    "substituted": rf"b=\frac{{{t(S['Sy'], sig)}}}{{{n}}}-{t(fit.a, sig)}\cdot\frac{{{t(S['Sx'], sig)}}}{{{n}}}",
+                    "substituted": rf"b=\frac{{{t(S['Sy'], sig)}}}{{{n}}}-{_paren(t(fit.a, sig))}\cdot\frac{{{t(S['Sx'], sig)}}}{{{n}}}",
                     "result": t(fit.b, sig + 2)})
         out.append({"title": "Residual variance (B.9)", "latex": r"s_\varepsilon^2=\frac{1}{n(n-2)}\left[nS_{yy}-S_y^2-a^2(nS_{xx}-S_x^2)\right]",
                     "substituted": rf"s_\varepsilon^2=\frac{{1}}{{{n}\cdot{n - 2}}}\left[{n}\cdot{t(S['Syy'], sig)}-({t(S['Sy'], sig)})^2-({t(fit.a, sig)})^2\cdot{t(den, sig)}\right]",

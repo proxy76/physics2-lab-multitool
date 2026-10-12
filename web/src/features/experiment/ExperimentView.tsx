@@ -14,11 +14,12 @@ const TABS = [
   ["brief", "Brief"],
   ["run", "Run"],
   ["data", "Data"],
+  ["analysis", "Analysis"],
   ["results", "Results"],
   ["questions", "Questions"],
 ] as const;
 
-export function ExperimentView({ id, tab }: { id: string; tab?: string }) {
+export function ExperimentView({ id, tab, sub }: { id: string; tab?: string; sub?: string }) {
   const def = EXP[id as ExpId];
   const sessionId = useAppState((s) => s.active[id as ExpId]);
   const session = useAppState((s) => (sessionId ? s.sessions[sessionId] : undefined));
@@ -36,7 +37,9 @@ export function ExperimentView({ id, tab }: { id: string; tab?: string }) {
   }, [tab, analysis.result, session]);
 
   if (!def) return <div className="page"><h1>Not found</h1><p>There is no experiment {id}. The lab covers Experiments 5, 6, 7, 3 and 4.</p></div>;
-  const current = TABS.find(([k]) => k === tab)?.[0] ?? (session && session.step > 0 ? "run" : "brief");
+  const tabs = TABS.filter(([k]) => k !== "analysis" || def.analysis);
+  const current = tabs.find(([k]) => k === tab)?.[0] ?? (session && session.step > 0 ? "run" : "brief");
+  const Analysis = def.analysis;
   const setData = (d: unknown) => session && updateSession(session.id, (s) => ({ ...s, data: d }));
 
   return (
@@ -47,7 +50,7 @@ export function ExperimentView({ id, tab }: { id: string; tab?: string }) {
       </header>
       <SessionBar def={def} session={session} />
       <nav className="exp-tabs" aria-label="Experiment sections">
-        {TABS.map(([k, label]) => (
+        {tabs.map(([k, label]) => (
           <a key={k} href={`#/exp/${def.id}/${k}`} aria-current={current === k ? "page" : undefined}
             onClick={(e) => { e.preventDefault(); go(`exp/${def.id}/${k}`); }}>
             {label}
@@ -64,6 +67,7 @@ export function ExperimentView({ id, tab }: { id: string; tab?: string }) {
           {current === "brief" && <BriefTab def={def} />}
           {current === "run" && <RunTab def={def} session={session} data={data} setData={setData} analysis={analysis} />}
           {current === "data" && <DataTab def={def} data={data} setData={setData} analysis={analysis} />}
+          {current === "analysis" && Analysis && <Analysis data={data} setData={setData} result={analysis.result} pending={analysis.pending} sub={sub} />}
           {current === "results" && <ResultsTab def={def} data={data} setData={setData} analysis={analysis} session={session} />}
           {current === "questions" && <QuestionsTab def={def} result={analysis.result} data={data} />}
         </>

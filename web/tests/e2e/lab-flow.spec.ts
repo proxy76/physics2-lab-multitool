@@ -75,6 +75,20 @@ test("example data gives the headline results with show-steps on every experimen
   }
 });
 
+test("Exp 6 Analysis tab works one material at a time with the numbers in the formulas", async ({ page }) => {
+  await page.goto("/");
+  await engineReady(page);
+  await loadExample(page, "6");
+  await page.goto("#/exp/6/analysis/Fe");
+  await expect(page.getByRole("tab", { name: /Fe — iron/ })).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(".calc").first()).toContainText("Area = ½ · (R − L) · H");
+  await expect(page.locator(".calc-big")).toContainText(/±.*cm⁻¹/);
+  const p = page.locator(".ga-step .param-grid input");
+  for (const [i, v] of ["0", "5.1", "2", "3.9"].entries()) await p.nth(i).fill(v);
+  await expect(page.getByText(/μgraph = 0\.600 cm⁻¹/)).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator(".engine-error")).toHaveCount(0);
+});
+
 test("dark-room theme applies and persists", async ({ page }) => {
   await page.goto("#/settings");
   await page.getByText("Dark-room (red, dim)").click();
@@ -89,7 +103,7 @@ test("no page scrolls sideways on a phone", async ({ page }) => {
   await engineReady(page);
   for (const e of EXPS) await loadExample(page, e);
   const pages = ["#/", "#/calc", "#/settings", ...EXPS.flatMap((e) => ["brief", "run", "data", "results", "questions"].map((t) => `#/exp/${e}/${t}`)),
-    ...["stats", "counting", "linfit", "quick", "propagate", "graphical", "report", "units", "decay"].map((t) => `#/calc/${t}`), ...EXPS.map((e) => `#/answers/${e}`)];
+    ...["stats", "counting", "linfit", "quick", "propagate", "graphical", "report", "units", "decay"].map((t) => `#/calc/${t}`), ...EXPS.map((e) => `#/answers/${e}`), "#/exp/6/analysis/Al", "#/exp/6/analysis/Pb"];
   const wide: string[] = [];
   const check = async (where: string) => {
     const [sw, cw] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);

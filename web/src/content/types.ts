@@ -39,7 +39,11 @@ export interface TableDef {
 
 export type Entry =
   | { kind: "fields"; fields: FieldDef[] }
-  | { kind: "row"; table: string; fields: string[]; addLabel?: string; defaults?: Record<string, string>; pick?: boolean }
+  | {
+      kind: "row"; table: string; fields: string[]; addLabel?: string; defaults?: Record<string, string>; pick?: boolean;
+      /** pre-fill these keys of a new row from the previous row, or (first row) from the given data path */
+      carry?: Record<string, string>;
+    }
   | { kind: "readings"; table: string }
   | { kind: "table"; table: string };
 
@@ -59,6 +63,12 @@ export interface RunStep {
   notes?: string[];
   optional?: boolean;
   live?: "plot" | "check";
+  /** show the "How" text open by default (beginner steps) */
+  expanded?: boolean;
+  /** "What goes in each box": one line per input/cell of this step */
+  cells?: { name: string; text: string }[];
+  /** live calculation panel inside the step card (engine result → what the app computed from the boxes) */
+  panel?: (r: EngineResult | null, data: any) => ReactNode; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export interface Brief {
@@ -86,6 +96,14 @@ export interface ResultInputs {
   fields: FieldDef[];
 }
 
+export interface AnalysisProps {
+  data: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  setData: (d: unknown) => void;
+  result: EngineResult | null;
+  pending: boolean;
+  sub?: string;
+}
+
 export interface ExperimentDef {
   id: ExpId;
   n: number;
@@ -104,6 +122,8 @@ export interface ExperimentDef {
   notes: string[];
   /** experiment-specific live panel under the Data tab (e.g. Exp 7 difference check) */
   livePanel?: (r: EngineResult | null, data: any) => ReactNode; // eslint-disable-line @typescript-eslint/no-explicit-any
+  /** guided step-by-step analysis, shown as its own "Analysis" tab */
+  analysis?: (p: AnalysisProps) => ReactNode;
   /** returns true when the data needed for the analysis is complete */
   complete: (data: any) => boolean; // eslint-disable-line @typescript-eslint/no-explicit-any
 }

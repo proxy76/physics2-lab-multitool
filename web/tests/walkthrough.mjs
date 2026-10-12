@@ -22,7 +22,7 @@ for (const e of (process.env.EXPS || "5,6,7,3,4").split(",")) {
   await p.goto(BASE + `#/exp/${e}/run`);
   const total = Number((await p.locator(".step-count").textContent()).match(/of (\d+)/)[1]);
   for (let i = 0; i < total; i++) {
-    const how = p.locator(".step-card details > summary, .step-card button", { hasText: /^\+?\s*How$/ });
+    const how = p.locator('.step-card button.disclosure[aria-expanded="false"]', { hasText: /^\+?\s*How$/ });
     if (await how.count()) await how.first().click().catch(() => {});
     await p.waitForTimeout(150);
     await p.locator(".step-card").screenshot({ path: join(out, `exp${e}-step${String(i + 1).padStart(2, "0")}.png`) });

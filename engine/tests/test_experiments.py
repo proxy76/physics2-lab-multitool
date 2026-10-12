@@ -268,3 +268,27 @@ def test_json_serialisable(exp):
     for params in (golden.examples()[exp], golden.make(exp)):
         out = json.loads(api.dispatch_json(json.dumps({"id": "x", "tool": f"{exp}.analyze", "params": params, "options": {"selfcheck": True}})))
         assert out["ok"], out.get("error")
+
+
+def test_exp6_guide_one_table_is_enough():
+    # The Analysis tab works material by material: Al alone (plus the shared x = 0 spectrum) gives
+    # the worked cells, graph scales, sums table, μ ± σ and the conclusions row.
+    p = golden.examples()["exp6"]
+    al = p["materials"][0]["rows"]
+    p["zero"] = {k: al[0][k] for k in ("H", "L", "R", "t")}
+    p["materials"][0]["rows"] = al[1:]
+    for m in p["materials"][1:]:
+        m["rows"] = []
+    p["materials"][0]["graphical"] = {"x1": "0", "y1": "4.11", "x2": "6", "y2": "2.89"}
+    res = run("exp6", p)
+    g = res["extra"]["guide"]["Al"]
+    assert g["ready"] and g["rows"][0]["shared"] and g["rows"][0]["RmL"] == "80"
+    assert g["rows"][0]["A"] == "7324"  # ½·(480 − 400)·183.1
+    assert g["factor_ok"] and g["graph"]["x"]["from"] == "0"
+    f = g["fit"]
+    assert f["n"] == 7 and len(f["sums"]) == 7 and f["report"].endswith("cm⁻¹")
+    assert rel_digits(mpf(f["mu"]), val(res, "Al.mu")) >= 5
+    assert g["conclusion"]["Z"] == "13" and g["graph_mu"]["mu"] == "0.203"
+    assert "--" not in "".join(s["substituted"] for s in f["steps"])  # negative slope is bracketed
+    # Fe and Pb have only the shared x = 0 row: one usable point, not ready, no fit
+    assert not res["extra"]["guide"]["Fe"]["ready"] and "fit" not in res["extra"]["guide"]["Fe"]

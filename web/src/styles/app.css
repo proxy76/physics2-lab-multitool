@@ -611,6 +611,41 @@ fieldset { min-width: 0; }
 .live-table figcaption { font-weight: 700; margin-bottom: var(--sp-2); }
 .live-note { padding: var(--sp-2) var(--sp-3); background: var(--surface-2); border-radius: var(--r-input); }
 
+/* beginner Run steps: what goes in each box, and what the app calculated from it */
+.cells { margin: var(--sp-3) 0; padding: var(--sp-3); background: var(--surface-2); border-radius: var(--r-input); }
+.cells-label { margin: 0 0 var(--sp-2); font-size: var(--fs-sm); font-weight: 700; color: var(--muted); }
+.cells dl { margin: 0; display: grid; gap: var(--sp-2); }
+.cells dl div { display: grid; grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr); gap: var(--sp-3); }
+.cells dt { font-weight: 700; font-family: var(--font-num); font-size: var(--fs-sm); }
+.cells dd { margin: 0; }
+.calc-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); margin: var(--sp-4) 0; padding: var(--sp-3); border: 1px solid var(--info); border-radius: var(--r-card); }
+.calc-title { margin: 0; font-weight: 700; }
+.calc { padding: var(--sp-2) var(--sp-3); background: var(--surface-2); border-radius: var(--r-input); overflow-x: auto; }
+.calc p { margin: var(--sp-1) 0; }
+.calc p > span { white-space: nowrap; }
+.calc.num p, p.calc { font-size: var(--fs-sm); }
+.calc-ok, .calc-warn, .calc-wait { margin: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-input); }
+.calc-ok { border: 1px solid var(--good); }
+.calc-warn { border: 1px solid var(--warn); }
+.calc-wait { border: 1px dashed var(--line); color: var(--muted); margin: var(--sp-3) 0; }
+.calc-big { font-size: var(--fs-lg); font-weight: 700; margin: var(--sp-1) 0; }
+.calc-more summary { min-height: var(--tap); display: flex; align-items: center; cursor: pointer; color: var(--accent); font-weight: 700; }
+
+/* guided analysis (Analysis tab) */
+.ga { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
+.ga-intro { max-width: 72ch; color: var(--muted); margin: 0; }
+.ga-step { border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); padding: var(--sp-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+.ga-step > * { margin-top: 0; margin-bottom: 0; }
+.ga-step h3 { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--sp-2); font-size: var(--fs-lg); margin-bottom: var(--sp-1); }
+.ga-num { display: inline-grid; place-items: center; min-width: 1.9em; height: 1.9em; border-radius: var(--r-pill); background: var(--accent); color: var(--accent-ink); font-family: var(--font-num); font-size: var(--fs-md); }
+.ga-ref { font-size: var(--fs-xs); font-weight: 400; color: var(--muted); }
+.ga-sub { font-weight: 700; }
+.ga-tips { padding-left: var(--sp-5); }
+.ga-tips li { margin: var(--sp-1) 0; }
+.ga-formula { padding: var(--sp-2) 0; border-top: 1px solid var(--line); overflow-x: auto; }
+.ga-formula-title { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--muted); }
+.rich-table tr.sum-row td { font-weight: 700; border-top: 2px solid var(--text); }
+
 /* guide notes */
 .guide-note { border: 1px solid var(--line); border-radius: var(--r-input); margin: var(--sp-2) 0; background: var(--surface); }
 .note-head { width: 100%; min-height: var(--tap); display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; text-align: left; background: none; border: 0; color: var(--text); font: inherit; padding: var(--sp-2) var(--sp-3); cursor: pointer; }
