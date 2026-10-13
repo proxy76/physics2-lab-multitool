@@ -275,15 +275,16 @@ def test_exp6_guide_one_table_is_enough():
     # the worked cells, graph scales, sums table, μ ± σ and the conclusions row.
     p = golden.examples()["exp6"]
     al = p["materials"][0]["rows"]
-    p["zero"] = {k: al[0][k] for k in ("H", "L", "R", "t")}
+    p["zero"] = {k: al[0][k] for k in ("H", "L", "R")}
     p["materials"][0]["rows"] = al[1:]
     for m in p["materials"][1:]:
         m["rows"] = []
-    p["materials"][0]["graphical"] = {"x1": "0", "y1": "4.11", "x2": "6", "y2": "2.89"}
+    p["materials"][0]["graphical"] = {"x1": "0", "y1": "0", "x2": "6", "y2": "1.22"}
     res = run("exp6", p)
     g = res["extra"]["guide"]["Al"]
     assert g["ready"] and g["rows"][0]["shared"] and g["rows"][0]["RmL"] == "80"
-    assert g["rows"][0]["A"] == "7324"  # ½·(480 − 400)·183.1
+    assert g["rows"][0]["A"] == "6104" and g["A0"] == "6104"  # ½·(480 − 400)·152.6
+    assert g["rows"][0]["ratio"] == "1.000" and g["rows"][0]["y"] == "0.000"  # A₀/A₀ = 1, ln 1 = 0
     assert g["factor_ok"] and g["graph"]["x"]["from"] == "0"
     f = g["fit"]
     assert f["n"] == 7 and len(f["sums"]) == 7 and f["report"].endswith("cm⁻¹")
@@ -292,3 +293,36 @@ def test_exp6_guide_one_table_is_enough():
     assert "--" not in "".join(s["substituted"] for s in f["steps"])  # negative slope is bracketed
     # Fe and Pb have only the shared x = 0 row: one usable point, not ready, no fit
     assert not res["extra"]["guide"]["Fe"]["ready"] and "fit" not in res["extra"]["guide"]["Fe"]
+
+
+def test_exp6_ratio_and_log_by_hand():
+    # Professor's version: t is fixed (100 s), so y = ln(A₀/A(x)) and μ = +slope. Check every cell
+    # against a direct computation and that μ equals the slope of ln A vs x with the sign flipped.
+    from mpmath import log
+
+    from labcalc import linfit
+
+    p = golden.examples()["exp6"]
+    res = run("exp6", p)
+    for m in p["materials"]:
+        sym = m["symbol"]
+        area = [(mpf(r["R"]) - mpf(r["L"])) * mpf(r["H"]) / 2 for r in m["rows"]]
+        A0 = area[0]
+        tab = next(t for t in res["tables"] if t["id"] == f"data.{sym}")
+        for r, A in zip(tab["rows"], area):
+            assert rel_digits(mpf(r["ratio"].replace("−", "-")), A0 / A) >= 5
+            if A != A0:
+                assert rel_digits(mpf(r["y"].replace("−", "-")), log(A0 / A)) >= 5
+        assert "t" not in {c["key"] for c in tab["columns"]}
+        f = linfit.ols([mpf(r["x"]) for r in m["rows"]], [log(A) for A in area])
+        assert rel_digits(val(res, f"{sym}.mu"), -f.a) >= 25  # values are serialised to 30 digits
+        assert abs(val(res, f"{sym}.fit.b")) < mpf("0.1")  # the line passes near (0, 0)
+
+
+def test_exp6_needs_x0():
+    p = golden.examples()["exp6"]
+    for m in p["materials"]:
+        m["rows"] = [r for r in m["rows"] if r["x"] != "0"]
+    res = run("exp6", p)
+    assert "Al.mu" not in res["values"]
+    assert any(w["code"] == "need_zero" for w in res["warnings"])

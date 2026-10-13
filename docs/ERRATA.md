@@ -66,7 +66,7 @@ Severity: **M** = mathematics/physics slip (the app computes the corrected form)
 |---|---|---|---|---|
 | E6-fig | §6.2 | "slab of material as depicted in Figure 6.2" | Fig. 6.1 (Fig. 6.2 is the setup photo). | R |
 | E6-mass | §6.1 vs §6.5–6.7 | Purpose: *mass* attenuation coefficient; analysis/conclusions: μ | The app reports both μ (cm⁻¹) and μ/ρ (cm²/g); the conclusions table keeps the guide's μ column and the density column, plus μ/ρ. | D |
-| E6-time | Table §6.4 | No time column | §6.3.2 says to divide areas by measuring time if times differ; the app adds a "t (s)" column (default: same time for all). | D |
+| E6-time | Table §6.4 | No time column | The professor fixes t = 100 s for every spectrum, so time cancels and is not recorded. The table has A₀/A(x) and y = ln(A₀/A(x)) instead of Area/t and ln(Area/t). | D |
 
 ## Experiment 7 — Photoelectric effect
 

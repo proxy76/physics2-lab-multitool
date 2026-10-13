@@ -72,7 +72,7 @@ def _exp5(rng, model, **kw):
 
 def _exp6(rng, model, **kw):
     T = TRUTH["exp6"]
-    t = mpf(120)
+    t = mpf(100)  # the professor fixes one measuring time for every spectrum
     Lc, Rc = mpf(400), mpf(480)
     mats = []
     for sym in ("Al", "Fe", "Pb"):
@@ -83,7 +83,7 @@ def _exp6(rng, model, **kw):
             if rng is not None:
                 rate *= mp.e ** mpf(rng.gauss(0, kw.get("sigma_ln", 0.02)))
             H = rate * t * 2 / (Rc - Lc)
-            rows.append({"id": f"{sym}{i}", "x": x, "t": "120", "H": s(H) if rng is None else fmt(float(H), 1), "L": "400", "R": "480"})
+            rows.append({"id": f"{sym}{i}", "x": x, "H": s(H) if rng is None else fmt(float(H), 1), "L": "400", "R": "480"})
         mats.append({"symbol": sym, "rows": rows})
     return {"materials": mats, "x_unit": "cm"}
 

@@ -10,17 +10,16 @@ const matSteps = (sym: string, i: number): RunStep[] => [
   {
     id: sym.toLowerCase(), role: ["OP", "RD", "AN"], title: `${MAT_NAME[sym]}: one row per stack (thickness, measure, read the peak)`, expanded: true,
     safety: sym === "Pb" ? "Lead is toxic: wear gloves or wash your hands afterwards. No food at the bench." : undefined,
-    how: `Repeat this loop for each ${sym} thickness:\n\n1. **OP** ${i > 0 ? "takes the previous material out, then " : ""}puts ${sym} sheets (only ${sym}!) flat and centred in the absorber holder.\n2. **OP** measures the total thickness of the stack with the caliper (or adds up the labels) and says it **in cm**: 1 mm = 0.1 cm.\n3. **AN** taps **“Next ${sym} thickness”** and types x.\n4. Start CASSY (stopwatch button) and the app's timer together. Wait the full time.\n5. **RD** reads the new peak exactly as for x = 0, and AN types it in. L and R are pre-filled from the previous spectrum: change them only if the peak's feet have moved.\n6. Look at the box under the inputs: the app shows Area, Area/t and ln(Area/t), and whether the stack is thick enough yet.\n7. Add sheets and start again at 1.`,
+    how: `Repeat this loop for each ${sym} thickness:\n\n1. **OP** ${i > 0 ? "takes the previous material out, then " : ""}puts ${sym} sheets (only ${sym}!) flat and centred in the absorber holder.\n2. **OP** measures the total thickness of the stack with the caliper (or adds up the labels) and says it **in cm**: 1 mm = 0.1 cm.\n3. **AN** taps **“Next ${sym} thickness”** and types x.\n4. Start CASSY (stopwatch button) and the app's timer together. Wait the full 100 s.\n5. **RD** reads the new peak exactly as for x = 0, and AN types it in. L and R are pre-filled from the previous spectrum: change them only if the peak's feet have moved.\n6. Look at the box under the inputs: the app shows A(x), A₀/A(x) and y = ln(A₀/A(x)), and whether the stack is thick enough yet.\n7. Add sheets and start again at 1.`,
     cells: [
       { name: "x (cm)", text: `total thickness of all ${sym} sheets in the holder, in cm (e.g. ${EXAMPLE_X[sym]})` },
       { name: "L, R (ch)", text: "the peak's feet. Pre-filled from the previous spectrum: keep them if the feet are still there" },
       { name: "H (counts)", text: "the new peak height. It gets smaller as the stack gets thicker" },
-      { name: "t (s)", text: "leave empty to use the measuring time you chose" },
     ],
-    timer: { seconds: 120, label: "Spectrum 120 s" },
-    entry: { kind: "row", table: sym, fields: ["x", "L", "R", "H", "t"], addLabel: `Next ${sym} thickness`, carry: { L: "zero.L", R: "zero.R" } },
+    timer: { seconds: 100, label: "Spectrum 100 s" },
+    entry: { kind: "row", table: sym, fields: ["x", "L", "R", "H"], addLabel: `Next ${sym} thickness`, carry: { L: "zero.L", R: "zero.R" } },
     meanwhile: "While a spectrum runs, OP prepares and measures the next stack.",
-    decision: `If the app says the rate has not yet dropped by ×2.72, add more sheets. Not enough ${sym}? Use all of it and note this in the report.`,
+    decision: `If the app says A₀/A(x) has not yet reached 2.72 (y = ln(A₀/A) below 1), add more sheets. Not enough ${sym}? Use all of it and note this in the report.`,
     panel: materialPanel(sym),
   },
   {
@@ -32,8 +31,7 @@ const matSteps = (sym: string, i: number): RunStep[] => [
 
 const empty = () => ({
   x_unit: "cm",
-  t_default: "120",
-  zero: { t: "", H: "", L: "", R: "" },
+  zero: { H: "", L: "", R: "" },
   thickness_tool: "",
   materials: MATS.map((symbol) => ({ symbol, rows: [], graphical: {} })),
 });
@@ -44,16 +42,15 @@ const matTable = (i: number, sym: string): TableDef => ({
   path: `materials.${i}.rows`,
   columns: [
     { key: "x", label: "Thickness", unit: "cm", hint: "whole stack, in cm" },
-    { key: "t", label: "t", unit: "s", hint: "empty = default time" },
     { key: "H", label: "Height", unit: "counts", hint: "peak top above its feet" },
     { key: "L", label: "Left channel", unit: "ch", hint: "left foot of the peak" },
     { key: "R", label: "Right channel", unit: "ch", hint: "right foot, > L" },
   ],
   defaults: {},
   engineTable: `data.${sym}`,
-  derived: [{ key: "A", label: "Area", unit: "counts" }, { key: "rate", label: "Area/t", unit: "s⁻¹" }, { key: "ln", label: "ln(Area/t)" }],
+  derived: [{ key: "A", label: "Area A(x)", unit: "counts" }, { key: "ratio", label: "A₀/A(x)" }, { key: "y", label: "y = ln(A₀/A(x))" }],
   rowLabel: (r, j) => `${sym} #${j + 1}` + (r.x ? ` · x = ${r.x} cm` : ""),
-  note: "Leave t empty to use the default measuring time (Data → parameters). The x = 0 row comes from the shared no-absorber spectrum unless you add one here. The Analysis tab works out every calculated cell.",
+  note: "Every spectrum is measured for 100 s, so no time is recorded. A₀ is the area of the x = 0 row, which comes from the shared no-absorber spectrum unless you add one here. The Analysis tab works out every calculated cell.",
 });
 
 export const exp6: ExperimentDef = {
@@ -65,7 +62,7 @@ export const exp6: ExperimentDef = {
   notes: ["E6-mass", "E6-time", "E6-fig"],
   brief: {
     measure: "The linear attenuation coefficient μ (and μ/ρ) of Al, Fe and Pb for the 661.7 keV γ line of ¹³⁷Cs, from the photopeak area at several absorber thicknesses.",
-    formula: String.raw`I(x)=I_0e^{-\mu x}\ \Rightarrow\ \ln\frac{A}{t}=\ln I_0-\mu x,\qquad A=\tfrac12(R-L)\,H`,
+    formula: String.raw`I(x)=I_0e^{-\mu x}\ \Rightarrow\ y=\ln\frac{A_0}{A(x)}=\mu x,\qquad A=\tfrac12(R-L)\,H`,
     expected: [
       { label: "Detector high voltage", value: "0.67 kV (Fig. 6.2)" },
       { label: "CASSY Gain Box A1", value: "≈ −5.81" },
@@ -80,7 +77,7 @@ export const exp6: ExperimentDef = {
     roles: {
       OP: "Stacks the absorber sheets, measures their thickness, starts/stops CASSY.",
       RD: "Reads L, R and H from the spectrum cursor and calls them out.",
-      AN: "Types the triangle values, watches ln(Area/t) vs x, checks the e-factor.",
+      AN: "Types the triangle values, watches ln(A₀/A) vs x, checks the e-factor.",
     },
     before: [
       "Answer Q1 (the linear form) — the analysis starts with it (§6.5).",
@@ -113,11 +110,9 @@ export const exp6: ExperimentDef = {
       see: "An empty graph. The spectrum appears here once you start a measurement.",
     },
     {
-      id: "time", role: ["AN"], title: "Choose one measuring time for every spectrum (120 s works)", expanded: true,
-      how: "Every spectrum is measured for the **same time**, so their peaks can be compared directly. 120 s is a good choice: about 20 spectra × 2 min is 40 min of counting.\n\nIf CASSY lets you set a measuring time, set it to this value. If it does not, start the app's timer together with CASSY and stop CASSY when the timer rings. The elapsed time is shown in CASSY's top-right corner.",
-      cells: [{ name: "Measuring time", text: "seconds per spectrum, e.g. 120. Type it once here. Every table row uses it unless you type a different t in that row." }],
+      id: "time", role: ["AN"], title: "Measuring time: 100 s for every spectrum", expanded: true,
+      how: "The professor fixed the measuring time at **100 s** for every spectrum. Because the time is always the same, the peak areas compare directly: the intensity ratio is just I₀/I = A₀/A(x). So there is **no time to write down** and no Area/t column.\n\nIf CASSY lets you set a measuring time, set it to 100 s. If it does not, start the app's 100 s timer together with CASSY and stop CASSY when the timer rings. The elapsed time is shown in CASSY's top-right corner.",
       verify: ["Where CASSY lets you fix the measuring time", "CASSY peak tools (Gaussian fit / integral) as an optional cross-check"],
-      entry: { kind: "fields", fields: [{ path: "t_default", label: "Measuring time used for every spectrum", unit: "s" }] },
     },
     {
       id: "bg", role: ["AN"], title: "Optional: record a background spectrum (no source)", optional: true,
@@ -126,8 +121,8 @@ export const exp6: ExperimentDef = {
     {
       id: "zero", role: ["OP", "AN"], title: "No sheets: professor places the source, then measure (x = 0)", expanded: true,
       safety: "Only the professor handles the source. Keep your hands out of the beam path.",
-      how: "1. Check that the absorber holder is **empty**. x = 0 means no material.\n2. Ask the professor to place the ¹³⁷Cs source.\n3. In CASSY, click the **stopwatch button** to start. At the same moment, start the app's timer below.\n4. Wait for the full time. If CASSY does not stop by itself, stop it when the timer rings.",
-      timer: { seconds: 120, label: "Spectrum 120 s" },
+      how: "1. Check that the absorber holder is **empty**. x = 0 means no material.\n2. Ask the professor to place the ¹³⁷Cs source.\n3. In CASSY, click the **stopwatch button** to start. At the same moment, start the app's timer below.\n4. Wait for the full 100 s. If CASSY does not stop by itself, stop it when the timer rings.",
+      timer: { seconds: 100, label: "Spectrum 100 s" },
       see: "The spectrum grows: a broad bump on the left (the Compton region) and **one sharp, tall peak on the right**. That is the **photopeak** (Fig. 6.3). Only the photopeak is used.",
     },
     {
@@ -137,10 +132,9 @@ export const exp6: ExperimentDef = {
         { name: "L (ch)", text: "channel number of the left foot of the peak" },
         { name: "R (ch)", text: "channel number of the right foot. Always bigger than L" },
         { name: "H (counts)", text: "height of the peak top above its feet" },
-        { name: "t (s)", text: "leave empty to use the measuring time you chose" },
       ],
       verify: ["How CASSY shows the channel and counts under the mouse (hover, or right-click → coordinates)"],
-      entry: { kind: "fields", fields: [{ path: "zero.L", label: "L (left foot)", unit: "ch" }, { path: "zero.R", label: "R (right foot)", unit: "ch" }, { path: "zero.H", label: "H (height)", unit: "counts" }, { path: "zero.t", label: "t (empty = default)", unit: "s" }] },
+      entry: { kind: "fields", fields: [{ path: "zero.L", label: "L (left foot)", unit: "ch" }, { path: "zero.R", label: "R (right foot)", unit: "ch" }, { path: "zero.H", label: "H (height)", unit: "counts" }] },
       panel: zeroPanel,
     },
     {
@@ -163,7 +157,7 @@ export const exp6: ExperimentDef = {
   cheat: [
     "Detector on: display shows 0.67 kV (don't touch the knob).",
     "CASSY Lab → red button → Gain Box A1 ≈ −5.81 → close both windows.",
-    "Same measuring time for every spectrum (120 s). Start = CASSY stopwatch button + app timer.",
+    "Every spectrum is 100 s (fixed by the professor; no time column). Start = CASSY stopwatch button + app timer.",
     "x = 0 (no sheets; the professor places the source): read L (left foot), R (right foot), H (peak height).",
     "Per material: 5–7 stacks of that material only, the thickest ≳ 1/μ (Al ≈ 5 cm, Fe ≈ 1.7 cm, Pb ≈ 0.8 cm). x in cm.",
     "Per stack: type x → measure → read H (L and R usually stay the same) → read the app's ×e note.",
@@ -172,11 +166,9 @@ export const exp6: ExperimentDef = {
   ],
   tables: MATS.map((s, i) => matTable(i, s)),
   params: [
-    { path: "t_default", label: "Default measuring time", unit: "s" },
     { path: "zero.L", label: "x = 0: left channel L", unit: "ch" },
     { path: "zero.R", label: "x = 0: right channel R", unit: "ch" },
     { path: "zero.H", label: "x = 0: height H", unit: "counts" },
-    { path: "zero.t", label: "x = 0: time (empty = default)", unit: "s" },
     { path: "thickness_tool", label: "Thickness instrument (Q2)", text: true },
   ],
   initialData: empty,
@@ -195,7 +187,11 @@ export const exp6: ExperimentDef = {
 
 $$\ln I(x)=\ln I_0-\mu x$$
 
-A straight line in (x, ln I) with **slope −μ** and **intercept ln I₀**. Equivalently ln(I₀/I) = μx, a line through the origin with slope μ. Since I ∝ Area/t, we plot ln(Area/t) against x.`,
+or, equivalently,
+
+$$\ln\frac{I_0}{I(x)}=\mu x$$
+
+a straight line through the origin with **slope μ**. Every spectrum is measured for the same 100 s, so I ∝ photopeak area and I₀/I(x) = A₀/A(x). We plot **y = ln(A₀/A(x))** against x: μ is the slope.`,
     },
     {
       id: "q2", n: "2", text: "What is the uncertainty of the foil thickness. Why?",
@@ -207,7 +203,7 @@ A straight line in (x, ln I) with **slope −μ** and **intercept ln I₀**. Equ
 
 For a stack of k sheets measured one by one, σ = √k·σ_sheet if the errors are independent (k·σ_sheet if systematic); measuring the whole stack at once keeps it at one σ.
 
-It is small compared with the counting/triangle scatter of ln(Area/t) (≈ 1–3 %), which is why the least-squares fit treats x as exact.`,
+It is small compared with the counting/triangle scatter of ln(A₀/A) (≈ 1–3 %), which is why the least-squares fit treats x as exact.`,
       live: (_r, d) => (d?.thickness_tool ? <p className="live-note">Your instrument: <b>{d.thickness_tool}</b></p> : null),
     },
     {

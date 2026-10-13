@@ -44,6 +44,14 @@ Brief milestones M0–M4 are complete, and most of M5 (device QA) is done. Every
 - `npm run walkthrough` now opens only collapsed "How" sections.
 - e2e: on this machine the default parallel workers starve Pyodide on the android project (stuck at "Starting Python"). Run `npx playwright test --workers=2`: 26/26 pass.
 
+## 2026-10-13: Exp 6 uses A₀/A(x), no time column (professor's change)
+
+- Every spectrum is measured for a fixed 100 s, so time is no longer recorded: the t column, `t_default` and `zero.t` are gone and the timers are 100 s.
+- Table: Area A(x), A₀/A(x) and y = ln(A₀/A(x)), where A₀ is the area at x = 0 (the mean if x = 0 was measured more than once). The fit is y = a·x + b with μ = +a, σ_μ = s_a, and b ≈ 0 is a check. The graphical method is now μ = (y₂ − y₁)/(x₂ − x₁) on a rising line through the origin.
+- No x = 0 spectrum means no A₀, so the material shows a `need_zero` notice and has no fit.
+- μ and s_a are unchanged from the old ln(Area/t) fit: ln(A₀/A) = ln A₀ − ln A, and a common time only shifts the intercept. `test_exp6_ratio_and_log_by_hand` checks this.
+- The golden/example data now uses t = 100 s and has no "t" key. `examples.json` was regenerated.
+
 ## Next steps
 
 1. **Push**, then check the first CI run, especially the Docker job and the Caddy e2e step (`git push origin main`).

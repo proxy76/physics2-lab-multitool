@@ -13,8 +13,8 @@ import type { AnalysisProps } from "./types";
 export const MATS = ["Al", "Fe", "Pb"] as const;
 
 interface GRow {
-  id: string; no: string; shared: boolean; excluded: boolean; x: string; t: string; t_default: boolean;
-  H: string; L: string; R: string; RmL: string; A: string; rate: string; ln: string; ratio: string;
+  id: string; no: string; shared: boolean; excluded: boolean; x: string;
+  H: string; L: string; R: string; RmL: string; A: string; ratio: string; y: string;
 }
 interface Axis { from: string; to: string; per_cm: string; per_mm: string; fill_pct: string }
 interface GFit {
@@ -23,7 +23,7 @@ interface GFit {
   sums: { x: string; y: string; xx: string; xy: string; yy: string }[]; totals: { x: string; y: string; xx: string; xy: string; yy: string }; steps: Step[];
 }
 interface Guide {
-  symbol: string; name: string; Z: string; rho: string; rows: GRow[]; n: number; ready: boolean; has_zero: boolean;
+  symbol: string; name: string; Z: string; rho: string; rows: GRow[]; n: number; ready: boolean; has_zero: boolean; A0: string;
   mu_ref?: string; x_e?: string; factor?: string; factor_ok?: boolean;
   graph?: { paper: string; x: Axis; y: Axis; points: { x: string; y: string }[] };
   xcom?: { mu: string; dev_pct: string; z: string | null; ok: boolean };
@@ -38,12 +38,14 @@ const NAMES: Record<string, string> = { Al: "aluminium", Fe: "iron", Pb: "lead" 
 const used = (g: Guide) => g.rows.filter((x) => !x.excluded);
 
 /** The three cell formulas of one table row, with that row's numbers in them. */
-export function WorkedRow({ row }: { row: GRow }) {
+export function WorkedRow({ row, A0 }: { row: GRow; A0: string }) {
   return (
     <div className="calc num">
-      <p><span>Area = ½ · (R − L) · H</span> <span>= ½ · ({row.R} − {row.L}) · {row.H}</span> <span>= ½ · {row.RmL} · {row.H}</span> <span>= <b>{row.A}</b> counts</span></p>
-      <p><span>Area/t = {row.A} / {row.t}</span> <span>= <b>{row.rate}</b> s⁻¹</span></p>
-      <p><span>ln(Area/t) = ln({row.rate})</span> <span>= <b>{row.ln}</b></span></p>
+      <p><span>A(x) = ½ · (R − L) · H</span> <span>= ½ · ({row.R} − {row.L}) · {row.H}</span> <span>= ½ · {row.RmL} · {row.H}</span> <span>= <b>{row.A}</b> counts</span></p>
+      {row.ratio && <>
+        <p><span>A₀/A(x) = {A0} / {row.A}</span> <span>= <b>{row.ratio}</b></span></p>
+        <p><span>y = ln(A₀/A(x)) = ln({row.ratio})</span> <span>= <b>{row.y}</b></span></p>
+      </>}
     </div>
   );
 }
@@ -55,16 +57,16 @@ function RowsTable({ g, full }: { g: Guide; full?: boolean }) {
         <thead>
           <tr>
             <th>No</th><th>x (cm)</th>
-            {full && <><th>t (s)</th><th>H</th><th>L</th><th>R</th><th>R − L</th></>}
-            <th>Area</th><th>Area/t (s⁻¹)</th><th>ln(Area/t)</th>{!full && <th>drop ×</th>}
+            {full && <><th>H</th><th>L</th><th>R</th><th>R − L</th></>}
+            <th>Area A(x)</th><th>A₀/A(x)</th><th>y = ln(A₀/A(x))</th>
           </tr>
         </thead>
         <tbody>
           {g.rows.map((r) => (
             <tr key={r.id} className={r.excluded ? "excluded" : undefined}>
               <td>{r.no}{r.shared ? "*" : ""}</td><td>{r.x}</td>
-              {full && <><td>{r.t}</td><td>{r.H}</td><td>{r.L}</td><td>{r.R}</td><td>{r.RmL}</td></>}
-              <td>{r.A}</td><td>{r.rate}</td><td>{r.ln}</td>{!full && <td>{r.ratio || "—"}</td>}
+              {full && <><td>{r.H}</td><td>{r.L}</td><td>{r.R}</td><td>{r.RmL}</td></>}
+              <td>{r.A}</td><td>{r.ratio || "—"}</td><td>{r.y || "—"}</td>
             </tr>
           ))}
         </tbody>
@@ -75,12 +77,12 @@ function RowsTable({ g, full }: { g: Guide; full?: boolean }) {
 }
 
 function FactorNote({ g }: { g: Guide }) {
-  if (!g.has_zero) return <p className="calc-warn">No x = 0 measurement yet: the app needs it to know how much the rate has dropped.</p>;
+  if (!g.has_zero) return <p className="calc-warn">No x = 0 measurement yet: the app needs A₀ (the area with no sheets) to compute A₀/A(x).</p>;
   if (!g.factor) return null;
   return g.factor_ok ? (
-    <p className="calc-ok">✓ Area/t has dropped ×{g.factor} — at least e ≈ 2.72, as the guide requires. Enough thicknesses for {g.symbol} once you have 5–7 rows.</p>
+    <p className="calc-ok">✓ A₀/A(x) has reached {g.factor} — at least e ≈ 2.72 (y ≥ 1), as the guide requires. Enough thicknesses for {g.symbol} once you have 5–7 rows.</p>
   ) : (
-    <p className="calc-warn">Area/t has dropped only ×{g.factor} so far; the guide needs at least ×2.72 (e). Add more {g.symbol} sheets — aim for a total of about {g.x_e} cm.</p>
+    <p className="calc-warn">A₀/A(x) is only {g.factor} so far; the guide needs at least 2.72 (e), i.e. y = ln(A₀/A) ≥ 1. Add more {g.symbol} sheets — aim for a total of about {g.x_e} cm.</p>
   );
 }
 
@@ -93,8 +95,8 @@ export function zeroPanel(r: EngineResult | null) {
   return (
     <section className="calc-panel" aria-live="polite">
       <p className="calc-title">The app calculated (x = 0)</p>
-      <WorkedRow row={row} />
-      <p className="muted small">This is your I₀: every later spectrum is compared with this rate.</p>
+      <div className="calc num"><p><span>A₀ = ½ · (R − L) · H</span> <span>= ½ · ({row.R} − {row.L}) · {row.H}</span> <span>= ½ · {row.RmL} · {row.H}</span> <span>= <b>{row.A}</b> counts</span></p></div>
+      <p className="muted small">This is your A₀: every later area A(x) is compared with it, A₀/A(x).</p>
     </section>
   );
 }
@@ -106,11 +108,11 @@ export function materialPanel(sym: string) {
     const rows = g ? used(g) : [];
     const last = rows.filter((x) => !x.shared).pop();
     if (!g || !last)
-      return <p className="calc-wait">After you type x, L, R and H for a {sym} stack, the app computes Area, Area/t and ln(Area/t) here and tells you when you have enough sheets.</p>;
+      return <p className="calc-wait">After you type x, L, R and H for a {sym} stack, the app computes A(x), A₀/A(x) and y = ln(A₀/A(x)) here and tells you when you have enough sheets.</p>;
     return (
       <section className="calc-panel" aria-live="polite">
         <p className="calc-title">The app calculated (row {last.no}, x = {last.x} cm)</p>
-        <WorkedRow row={last} />
+        <WorkedRow row={last} A0={g.A0} />
         <FactorNote g={g} />
         <details className="calc-more">
           <summary>Your {sym} table so far ({rows.length} rows)</summary>
@@ -128,7 +130,7 @@ export function materialResult(sym: string) {
     if (!g?.fit)
       return (
         <p className="calc-warn">
-          Not enough {sym} data yet: {g ? `${g.n} usable thickness${g.n === 1 ? "" : "es"}` : "no rows"}. The app needs at least 3 (x = 0 counts) — the guide wants 5–7. Go back one step and add rows.
+          Not enough {sym} data yet: {g ? `${g.n} usable thickness${g.n === 1 ? "" : "es"}` : "no rows"}{g && !g.has_zero ? " and no x = 0 spectrum (A₀)" : ""}. The app needs A₀ and at least 3 thicknesses (x = 0 counts) — the guide wants 5–7. Go back and add rows.
         </p>
       );
     const plot = r?.plots.find((p) => p.id === `fit.${sym}`);
@@ -212,22 +214,23 @@ export function Exp6Analysis({ data, setData, result, pending, sub }: AnalysisPr
         <>
           {!g.ready && (
             <p className="calc-warn">
-              You have {g.n} usable thickness{g.n === 1 ? "" : "es"} for {sym}. The fit needs at least 3 (x = 0 counts); the guide wants 5–7.
+              You have {g.n} usable thickness{g.n === 1 ? "" : "es"} for {sym}{g.has_zero ? "" : " and no x = 0 spectrum (A₀) yet"}. The fit needs A₀ and at least 3 thicknesses (x = 0 counts); the guide wants 5–7.
               Steps 1–2 work already; steps 3–7 appear when there are enough rows.
             </p>
           )}
 
           <GStep n="1" title="Turn Lambert's law into a straight line" guide="§6.5.1 · Q1">
             <p>The guide's law (6.2) is a curve. Take the natural logarithm of both sides:</p>
-            <Tex tex={String.raw`I=I_0e^{-\mu x}\ \Rightarrow\ \ln I=\ln I_0-\mu x`} display />
+            <Tex tex={String.raw`I=I_0e^{-\mu x}\ \Rightarrow\ \frac{I_0}{I}=e^{\mu x}\ \Rightarrow\ \ln\frac{I_0}{I}=\mu x`} display />
             <p>
-              The photopeak <b>Area</b> is proportional to I·t, so I ∝ Area/t. This is the straight line <b>y = a·x + b</b> with
-              y = ln(Area/t), x = thickness, slope <b>a = −μ</b> and intercept b = ln I₀. So: <b>μ = −slope</b>. This is also your answer to Q1.
+              Every spectrum is measured for the same time (t = 100 s), so the intensity is proportional to the photopeak <b>Area</b>:
+              I₀/I = A₀/A(x), where A₀ is the area with no sheets (x = 0). This is the straight line <b>y = a·x + b</b> with
+              y = ln(A₀/A(x)), x = thickness, slope <b>a = μ</b> and intercept b ≈ 0 (the line passes through the origin). So: <b>μ = slope</b>. This is also your answer to Q1.
             </p>
           </GStep>
 
           <GStep n="2" title={`Complete the ${sym} table`} guide="§6.4 table">
-            <p>You measured x, t, H, L and R. The last three columns are calculated. The app's values:</p>
+            <p>You measured x, H, L and R (t = 100 s for every spectrum, so there is no time column). The last three columns are calculated, with A₀ = {g.A0 || "—"} counts, the area at x = 0. The app's values:</p>
             <RowsTable g={g} full />
             <p className="ga-sub">How each calculated cell is made — tap a row number to see its numbers:</p>
             <div className="chips" role="tablist" aria-label="Row">
@@ -237,23 +240,23 @@ export function Exp6Analysis({ data, setData, result, pending, sub }: AnalysisPr
                 </button>
               ))}
             </div>
-            {row && <WorkedRow row={row} />}
+            {row && <WorkedRow row={row} A0={g.A0} />}
             <ul className="ga-tips">
-              <li><b>Area</b> (counts): the triangle under the photopeak, Fig. 6.4. Write it as a whole number.</li>
-              <li><b>Area/t</b> (s⁻¹): divides out the measuring time, so spectra of different lengths compare. 4 significant digits are plenty.</li>
-              <li><b>ln(Area/t)</b>: the “ln” key of your calculator, applied to Area/t. Write 3 decimals. This is the y of your graph.</li>
+              <li><b>Area A(x)</b> (counts): the triangle under the photopeak, Fig. 6.4. Write it as a whole number.</li>
+              <li><b>A₀/A(x)</b>: the x = 0 area divided by this row's area. It is 1 at x = 0 and grows with the thickness. 4 significant digits are plenty.</li>
+              <li><b>y = ln(A₀/A(x))</b>: the “ln” key of your calculator, applied to A₀/A(x). Write 3 decimals. It is 0 at x = 0. This is the y of your graph.</li>
             </ul>
           </GStep>
 
           {g.graph && (
             <GStep n="3" title="Draw the graph on millimetre paper" guide="§6.5.2">
-              <p>Plot <b>ln(Area/t)</b> on the vertical axis against <b>thickness x</b> on the horizontal axis. Suggested scales for {g.graph.paper} (18 cm wide, 27 cm tall):</p>
+              <p>Plot <b>y = ln(A₀/A(x))</b> on the vertical axis against <b>thickness x</b> on the horizontal axis. Suggested scales for {g.graph.paper} (18 cm wide, 27 cm tall):</p>
               <div className="table-scroll">
               <table className="rich-table">
                 <thead><tr><th>Axis</th><th>Start at</th><th>1 cm of paper</th><th>1 mm of paper</th><th>Ends at</th></tr></thead>
                 <tbody>
                   <tr><td>Horizontal: x (cm)</td><td className="num">{g.graph.x.from}</td><td className="num">{g.graph.x.per_cm} cm</td><td className="num">{g.graph.x.per_mm} cm</td><td className="num">{g.graph.x.to}</td></tr>
-                  <tr><td>Vertical: ln(Area/t)</td><td className="num">{g.graph.y.from}</td><td className="num">{g.graph.y.per_cm}</td><td className="num">{g.graph.y.per_mm}</td><td className="num">{g.graph.y.to}</td></tr>
+                  <tr><td>Vertical: y = ln(A₀/A)</td><td className="num">{g.graph.y.from}</td><td className="num">{g.graph.y.per_cm}</td><td className="num">{g.graph.y.per_mm}</td><td className="num">{g.graph.y.to}</td></tr>
                 </tbody>
               </table>
               </div>
@@ -263,11 +266,11 @@ export function Exp6Analysis({ data, setData, result, pending, sub }: AnalysisPr
                   <thead><tr><th>Point</th>{g.graph.points.map((_, i) => <th key={i}>{i + 1}</th>)}</tr></thead>
                   <tbody>
                     <tr><td>x (cm)</td>{g.graph.points.map((p, i) => <td key={i}>{p.x}</td>)}</tr>
-                    <tr><td>ln(Area/t)</td>{g.graph.points.map((p, i) => <td key={i}>{p.y}</td>)}</tr>
+                    <tr><td>y = ln(A₀/A)</td>{g.graph.points.map((p, i) => <td key={i}>{p.y}</td>)}</tr>
                   </tbody>
                 </table>
               </div>
-              <p className="muted small">Label the axes with the quantity and unit, give the graph a title (“ln(Area/t) vs thickness, {NAMES[sym]}”). The points should lie close to a falling straight line.</p>
+              <p className="muted small">Label the axes with the quantity and unit, give the graph a title (“ln(A₀/A) vs thickness, {NAMES[sym]}”). The points should lie close to a rising straight line that starts at the origin.</p>
               {plot && <Plot plot={plot} />}
             </GStep>
           )}
@@ -281,7 +284,7 @@ export function Exp6Analysis({ data, setData, result, pending, sub }: AnalysisPr
                   <li>Read their coordinates from the paper and type them here:</li>
                 </ol>
                 <div className="param-grid">
-                  {field("x1", "P₁ x", "cm")}{field("y1", "P₁ ln(Area/t)")}{field("x2", "P₂ x", "cm")}{field("y2", "P₂ ln(Area/t)")}
+                  {field("x1", "P₁ x", "cm")}{field("y1", "P₁ y")}{field("x2", "P₂ x", "cm")}{field("y2", "P₂ y")}
                 </div>
                 <p className="muted small">
                   Check: the least-squares line passes through ({fit.check.x1}, {fit.check.y1}) and ({fit.check.x2}, {fit.check.y2}). A good hand-drawn line is close to these.
@@ -289,9 +292,9 @@ export function Exp6Analysis({ data, setData, result, pending, sub }: AnalysisPr
                 {g.graph_mu ? (
                   <div className="calc">
                     <Tex tex={g.graph_mu.latex} display />
-                    <p>μ<sub>graph</sub> = <b className="num">{g.graph_mu.mu} cm⁻¹</b> (the minus sign because the line falls).</p>
+                    <p>μ<sub>graph</sub> = <b className="num">{g.graph_mu.mu} cm⁻¹</b>, the slope of your line.</p>
                   </div>
-                ) : <p className="calc-wait">Type both points: the app then computes μ = −(y₂ − y₁)/(x₂ − x₁) here.</p>}
+                ) : <p className="calc-wait">Type both points: the app then computes μ = (y₂ − y₁)/(x₂ − x₁) here.</p>}
                 <details className="calc-more">
                   <summary>Optional: uncertainty of the graphical μ (needed for Q6)</summary>
                   <p>Draw the <b>steepest</b> and the <b>shallowest</b> lines that still pass reasonably through the points. Read two points on each:</p>
@@ -310,7 +313,7 @@ export function Exp6Analysis({ data, setData, result, pending, sub }: AnalysisPr
               </GStep>
 
               <GStep n="5" title="μ by the least-squares method" guide="§6.5.4 · Appendix B">
-                <p>Make this helper table (y = ln(Area/t)) and add up every column — the Σ row:</p>
+                <p>Make this helper table (y = ln(A₀/A(x))) and add up every column — the Σ row:</p>
                 <div className="table-scroll">
                   <table className="rich-table num">
                     <thead><tr><th>i</th><th>x</th><th>y</th><th>x²</th><th>x·y</th><th>y²</th></tr></thead>
@@ -323,9 +326,9 @@ export function Exp6Analysis({ data, setData, result, pending, sub }: AnalysisPr
                 <p>Then put the sums into the guide's formulas (n = {fit.n} points):</p>
                 {fit.steps.map((s) => <FitStep key={s.title} s={s} />)}
                 <div className="calc">
-                  <Tex tex={String.raw`\mu=-a=${fit.mu}\ \mathrm{cm^{-1}},\qquad \sigma_\mu=s_a=${fit.s_mu}\ \mathrm{cm^{-1}}`} display />
+                  <Tex tex={String.raw`\mu=a=${fit.mu}\ \mathrm{cm^{-1}},\qquad \sigma_\mu=s_a=${fit.s_mu}\ \mathrm{cm^{-1}}`} display />
                 </div>
-                <p className="muted small">If you rounded ln(Area/t) to 3 decimals, your sums can differ in the last digit — that is normal.</p>
+                <p className="muted small">If you rounded y = ln(A₀/A) to 3 decimals, your sums can differ in the last digit — that is normal.</p>
               </GStep>
 
               <GStep n="6" title="Uncertainty and rounding" guide="§6.6">

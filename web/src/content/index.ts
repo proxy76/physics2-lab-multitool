@@ -28,10 +28,9 @@ export function exampleData(exp: ExpId): unknown {
   const base = EXP[exp].initialData() as Record<string, unknown>;
   const copy = JSON.parse(JSON.stringify(ex));
   if (exp === "6") {
-    copy.t_default = "120";
     // the shared x = 0 spectrum (Run step "measure with no absorber") = Al's x = 0 reading
     const z = copy.materials?.[0]?.rows?.find((r: Record<string, string>) => Number(r.x) === 0);
-    copy.zero = z ? { t: z.t ?? "", H: z.H, L: z.L, R: z.R } : { t: "", H: "", L: "", R: "" };
+    copy.zero = z ? { H: z.H, L: z.L, R: z.R } : { H: "", L: "", R: "" };
     copy.thickness_tool = "caliper, 0.05 mm least count";
   }
   if (exp === "7") copy.graphical = {};

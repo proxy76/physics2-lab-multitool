@@ -57,7 +57,7 @@ Headline: least squares D = k·U^(−1/2) + b (the guide's Appendix-B line, inte
 
 ## D12. Experiment 6
 
-Rate = Area/t with Area = ½(R − L)·H (Fig. 6.4 triangle). Fit y = ln(rate) vs x (cm): μ = −a, σ_μ = s_a. μ/ρ uses NIST densities (treated as exact). If all times are equal, using ln(Area) gives the same μ; the app always divides by t. An optional ln(I/I₀) column is shown for the report.
+Area = ½(R − L)·H (Fig. 6.4 triangle). At the professor's request (2026-10-13) every spectrum is measured for the same t = 100 s and no time is recorded, so I₀/I = A₀/A(x) with A₀ the area at x = 0 (mean if x = 0 was measured more than once). Fit y = ln(A₀/A(x)) vs x (cm), y = a·x + b (Appendix B): μ = a, σ_μ = s_a, b ≈ 0 is a check. Since ln(A₀/A) = ln A₀ − ln A, μ and s_a equal those of the former ln(Area/t) fit. μ/ρ uses NIST densities (treated as exact). Without an x = 0 spectrum there is no A₀ and no fit.
 
 ## D13. Experiment 7
 

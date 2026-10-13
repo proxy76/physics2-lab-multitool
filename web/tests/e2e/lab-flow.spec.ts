@@ -81,10 +81,11 @@ test("Exp 6 Analysis tab works one material at a time with the numbers in the fo
   await loadExample(page, "6");
   await page.goto("#/exp/6/analysis/Fe");
   await expect(page.getByRole("tab", { name: /Fe — iron/ })).toHaveAttribute("aria-selected", "true");
-  await expect(page.locator(".calc").first()).toContainText("Area = ½ · (R − L) · H");
+  await expect(page.locator(".calc").first()).toContainText("A(x) = ½ · (R − L) · H");
+  await expect(page.locator(".calc").first()).toContainText("y = ln(A₀/A(x))");
   await expect(page.locator(".calc-big")).toContainText(/±.*cm⁻¹/);
   const p = page.locator(".ga-step .param-grid input");
-  for (const [i, v] of ["0", "5.1", "2", "3.9"].entries()) await p.nth(i).fill(v);
+  for (const [i, v] of ["0", "0", "2", "1.2"].entries()) await p.nth(i).fill(v);
   await expect(page.getByText(/μgraph = 0\.600 cm⁻¹/)).toBeVisible({ timeout: 30_000 });
   await expect(page.locator(".engine-error")).toHaveCount(0);
 });
