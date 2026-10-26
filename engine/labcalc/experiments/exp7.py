@@ -1,7 +1,9 @@
 """Experiment 7 — Photoelectric effect, capacitor method: Planck's constant.
 
-e·U₀ = h·ν − W (7.3). Least squares of Ū₀ (V) against ν (Hz): slope a = h/e ⇒ h = e·a, σ_h = e·s_a;
+e·U₀ = h·ν − W (7.3). Least squares of Ū₀ (V) against ν (s⁻¹): slope a = h/e ⇒ h = e·a, σ_h = e·s_a;
 intercept b = −W/e ⇒ W = −e·b; threshold ν₀ = −b/a (σ includes cov(a,b)); λ_max = c/ν₀.
+The professor wants a frequency column ν = c/λ (s⁻¹) next to the wavelength in the §7.4 table ("sheet").
+Four filters give four points; a 4th (highest-ν) point below the 3rd means a defective filter: exclude it.
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ from .common import compare, fit_plot, fit_values, fit_warnings, series_line
 
 H_REF = mpf("6.62607015e-34")
 CHECK_PAIRS = [("404.7", "578.2"), ("435.8", "546.1")]
+CHECK_TOL_NM = mpf("2")  # "578" on the sheet still matches the 578.2 nm line
 
 
 def _readings(f, i):
@@ -34,7 +37,7 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
     res = Result(round_up=options.get("round_up", False))
     thr = mpf(str(options.get("outlier_threshold", "2.5")))
     e, c, h = k["e"], k["c"], k["h"]
-    rows, pts = [], []
+    rows, pts, typed = [], [], {}
     for i, f in enumerate(params.get("filters") or []):
         if is_blank(f.get("lambda")):
             continue
@@ -44,8 +47,10 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
         U = _readings(f, i)
         name = (f.get("color") or fmt_sig(lam_nm, 4) + " nm").strip()
         nu = c / (lam_nm * mpf("1e-9"))
-        row = {"id": f.get("id", str(i)), "filter": name, "lambda": cell(lam_nm, None, 5), "nu": cell(nu / mpf("1e14"), None, 6), "N": str(len(U)),
+        row = {"id": f.get("id", str(i)), "filter": name, "lambda": str(f.get("lambda")).strip(), "nu": cell(nu / mpf("1e14"), None, 4), "N": str(len(U)),
                "U0": "", "s": "", "sem": "", "readings": ", ".join(fmt_sig(u, 6) for u in U), "excluded": bool(f.get("excluded"))}
+        raw = f.get("readings")
+        typed[row["id"]] = [str(v).strip() for v in (split_list(raw) if isinstance(raw, str) else raw or []) if not is_blank(v)]
         if U:
             d = stats.describe(U)
             sem = d.get("sem")
@@ -64,22 +69,38 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
                         "inv_lam": 1 / (lam_nm * mpf("1e-9"))})
         rows.append(row)
     res.table("data", "Per-filter results (guide §7.4/§7.5)", [
-        {"key": "filter", "label": "Filter", "unit": ""}, {"key": "lambda", "label": "wavelength", "unit": "nm"}, {"key": "nu", "label": "ν", "unit": "10¹⁴ Hz"},
+        {"key": "filter", "label": "Filter", "unit": ""}, {"key": "lambda", "label": "wavelength", "unit": "nm"}, {"key": "nu", "label": "ν", "unit": "10¹⁴ s⁻¹"},
         {"key": "N", "label": "N", "unit": ""}, {"key": "U0", "label": "Ū₀", "unit": "V"}, {"key": "sem", "label": "σ_Ū₀", "unit": "V"},
         {"key": "s", "label": "s", "unit": "V"}], rows, note="Ū₀ = mean of the readings; σ_Ū₀ = s/√N (standard deviation of the mean, Q3).")
+    sheet = []
+    for row in rows:
+        U = typed[row["id"]]  # as typed, like the paper sheet
+        for j, u in enumerate(U or [""]):
+            first = j == 0
+            sheet.append({"i": str(j + 1) if U else "", "filter": row["filter"] if first else "", "lambda": row["lambda"] if first else "",
+                          "nu": row["nu"] if first else "", "U": u, "U0": row["U0"] if first else "", "sem": row["sem"] if first else "",
+                          "excluded": row["excluded"]})
+    res.table("sheet", "Lab-sheet table (§7.4 layout with ν next to λ, as the professor asks)", [
+        {"key": "i", "label": "#", "unit": ""}, {"key": "filter", "label": "Filter", "unit": ""}, {"key": "lambda", "label": "λ", "unit": "nm"},
+        {"key": "nu", "label": "ν", "unit": "10¹⁴ s⁻¹"}, {"key": "U", "label": "Voltage", "unit": "V"}, {"key": "U0", "label": "Ū₀", "unit": "V"},
+        {"key": "sem", "label": "σ_Ū₀", "unit": "V"}], sheet, note="One line per reading; Filter, λ, ν, Ū₀ and σ_Ū₀ are written once per filter (merged cells on paper). ν = c/λ.")
     if pts:
         d0 = [p for p in pts if p["n"] >= 2]
         if d0:
             p = d0[0]
             res.step("Mean and standard deviation of the mean (Q3)", r"\bar U_0=\frac1N\sum U_i,\quad \sigma_{\bar U_0}=\frac{s}{\sqrt N}", f"\\text{{{p['name']}}}",
                      rf"\bar U_0={t(p['U0'])}\ \mathrm{{V}},\ \sigma={t(p['sem'], 3)}\ \mathrm{{V}}")
-        res.step("Frequency of each line", r"\nu=\frac{c}{\lambda}", rf"\nu=\frac{{{t(c, 9)}}}{{{t(pts[0]['lam'])}\times10^{{-9}}}}", rf"{t(pts[0]['nu'])}\ \mathrm{{Hz}}")
+        res.step("Frequency of each line (ν column, next to λ)", r"\nu=\frac{c}{\lambda}", rf"\nu=\frac{{{t(c, 9)}}}{{{t(pts[0]['lam'])}\times10^{{-9}}}}",
+                 rf"{t(pts[0]['nu'])}\ \mathrm{{s^{{-1}}}}")
 
     # live sanity check: stopping-voltage differences do not depend on W
-    by_lam = {fmt_sig(p["lam"], 4): p for p in pts}
+    def near(lam):
+        best = min(pts, key=lambda p: abs(p["lam"] - lam), default=None)
+        return best if best is not None and abs(best["lam"] - lam) <= CHECK_TOL_NM else None
+
     checks = []
     for l1, l2 in CHECK_PAIRS:
-        a, b = by_lam.get(fmt_sig(mpf(l1), 4)), by_lam.get(fmt_sig(mpf(l2), 4))
+        a, b = near(mpf(l1)), near(mpf(l2))
         expected = k["hc_eVnm"] * (1 / mpf(l1) - 1 / mpf(l2))
         item = {"pair": f"U₀({l1} nm) − U₀({l2} nm)", "expected": fmt_sig(expected, 3)}
         if a and b:
@@ -92,7 +113,10 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
     use = [p for p in pts if not p["excluded"]]
     order = sorted(use, key=lambda p: p["nu"])
     for p1, p2 in zip(order, order[1:]):
-        if p2["U0"] <= p1["U0"]:
+        if p2["U0"] <= p1["U0"] and p2 is order[-1] and len(order) >= 4:
+            res.warn("filter_defective", f"{p2['name']} has the highest frequency but a lower Ū₀ than {p1['name']}: that filter is probably defective "
+                     f"(it happened to an earlier team). Exclude its row and fit the other {len(order) - 1} points; mention it in the report.")
+        elif p2["U0"] <= p1["U0"]:
             res.warn("not_increasing", f"U₀ does not increase with frequency between {p1['name']} and {p2['name']} — check filter identity / plateau.")
     if len(use) < 3:
         res.info("need_rows", "The fit needs at least 3 filters.")
@@ -103,10 +127,10 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
     y = [p["U0"] for p in use]
     f = linfit.ols(x, y)
     fit_warnings(res, f, ids, labels, thr, "U₀(ν)")
-    fit_values(res, "fit", f, "V/Hz", "V", group="fit")
+    fit_values(res, "fit", f, "V·s", "V", group="fit")
     hh, sh = e * f.a, e * f.s_a
     res.value("h", hh, sh, "J·s", "Planck constant h (least squares)", group="results")
-    res.steps_from(linfit.steps(f, "ν (Hz)", "Ū₀ (V)"))
+    res.steps_from(linfit.steps(f, "ν (s⁻¹)", "Ū₀ (V)"))
     res.step("Planck constant from the slope (7.3)", r"a=\frac{h}{e}\Rightarrow h=e\,a,\quad\sigma_h=e\,s_a",
              rf"h={t(e, 10)}\cdot{t(f.a)}", rf"h={t(hh)}\pm{t(sh, 3)}\ \mathrm{{J\,s}}")
     W_eV, sW = -f.b, f.s_b
@@ -118,20 +142,20 @@ def analyze(params: dict, k: dict, options: dict) -> dict:
     snu0 = sqrt(var) if var > 0 else mpf(0)
     lam_max = c / nu0
     slam = c * snu0 / nu0 ** 2
-    res.value("nu0", nu0, snu0, "Hz", "threshold frequency ν₀ = −b/a (with cov(a,b))", group="results")
+    res.value("nu0", nu0, snu0, "s⁻¹", "threshold frequency ν₀ = −b/a (with cov(a,b))", group="results")
     res.value("lam_max", lam_max * mpf("1e9"), slam * mpf("1e9"), "nm", "longest wavelength λ_max = c/ν₀", group="results")
     res.step("Threshold frequency (Q6)", r"\nu_0=-\frac{b}{a},\quad \sigma_{\nu_0}^2=\frac{s_b^2+\nu_0^2s_a^2+2\nu_0\,\mathrm{cov}(a,b)}{a^2}",
-             rf"\nu_0=-\frac{{{t(f.b)}}}{{{t(f.a)}}}", rf"\nu_0={t(nu0)}\pm{t(snu0, 3)}\ \mathrm{{Hz}},\ \lambda_{{max}}={t(lam_max * mpf('1e9'))}\ \mathrm{{nm}}")
+             rf"\nu_0=-\frac{{{t(f.b)}}}{{{t(f.a)}}}", rf"\nu_0={t(nu0)}\pm{t(snu0, 3)}\ \mathrm{{s^{{-1}}}},\ \lambda_{{max}}={t(lam_max * mpf('1e9'))}\ \mathrm{{nm}}")
     compare(res, "h", hh, sh, H_REF, None, "J·s", "h vs SI value 6.62607015×10⁻³⁴ J·s (exact)")
     res.table("conclusions", "Conclusions (guide §7.7)", [{"key": "h", "label": "Planck constant h", "unit": "J·s"}, {"key": "unc", "label": "Uncertainty", "unit": "J·s"}],
               [dict(zip(("h", "unc"), cell_val_unc(hh, sh)))])
     flags = res.extra.setdefault("flags", {})
-    plot = fit_plot("fit", "Ū₀ vs frequency", {"label": "ν", "unit": "Hz"}, {"label": "Ū₀", "unit": "V"}, f, [p["sem"] or 0 for p in use], ids, labels, flags)
+    plot = fit_plot("fit", "Ū₀ vs frequency", {"label": "ν", "unit": "s⁻¹"}, {"label": "Ū₀", "unit": "V"}, f, [p["sem"] or 0 for p in use], ids, labels, flags)
     res.plot(plot)
     # graphical h
     gr = params.get("graphical") or {}
     if all(not is_blank(gr.get(kk)) for kk in ("x1", "y1", "x2", "y2")):
-        xs_scale = parse_optional(gr.get("x_scale"), "graphical.x_scale") or mpf(1)  # e.g. 1e14 if ν read in 10¹⁴ Hz
+        xs_scale = parse_optional(gr.get("x_scale"), "graphical.x_scale") or mpf(1)  # e.g. 1e14 if ν read in 10¹⁴ s⁻¹
         P = [parse_number(gr.get(kk), f"graphical.{kk}") for kk in ("x1", "y1", "x2", "y2")]
         a, _ = graphical.two_point(P[0] * xs_scale, P[1], P[2] * xs_scale, P[3])
         hg = e * a

@@ -17,7 +17,7 @@ export const exp7: ExperimentDef = {
   title: "Photoelectric effect — Planck's constant",
   short: "h from U₀(ν)",
   tool: "exp7.analyze",
-  notes: ["E7-order", "E7-yellow", "E7-W", "E7-app"],
+  notes: ["E7-order", "E7-table", "E7-filter", "E7-yellow", "E7-W", "E7-app"],
   brief: {
     measure: "Planck's constant h from the stopping voltage U₀ reached by a capacitor charged by the photocurrent, for several Hg lines selected with filters.",
     formula: String.raw`eU_0=h\nu-W\quad\Rightarrow\quad U_0=\frac{h}{e}\,\nu-\frac{W}{e}`,
@@ -26,6 +26,7 @@ export const exp7: ExperimentDef = {
       { label: "U₀(404.7) − U₀(578.2)", value: "≈ {{exp7.diff_405_578}} (ideal; often ~10 % less)" },
       { label: "U₀(435.8) − U₀(546.1)", value: "≈ {{exp7.diff_436_546}} (ideal)" },
       { label: "Readings per filter", value: "10 (every 15–20 s allowed)" },
+      { label: "Points on the graph", value: "4 (one per filter); drop the 4th if that filter is defective" },
     ],
     safety: [
       "The Hg lamp housing gets hot — do not touch it, let it cool before moving it.",
@@ -41,6 +42,8 @@ export const exp7: ExperimentDef = {
       "Prepare the explanation of eq. 7.3 (procedure step 2) and Q2 (what A–E are).",
       "Know the Hg lines: 578.2 yellow, 546.1 green, 435.8 blue, 404.7 violet (365.4 UV if a UV filter exists).",
       "Check which filters are on the wheel.",
+      "Draw the data table before the lab with a frequency column next to wavelength. The guide's table has only wavelength, but the professor wants both: Filter | λ (nm) | ν (s⁻¹) | Voltage (V), 10 rows per filter | Ū₀ (V) | σ_Ū₀ (V).",
+      "Fill ν = c/λ in at home: yellow 578.2 nm → 5.185·10¹⁴ s⁻¹, green 546.1 nm → 5.490·10¹⁴ s⁻¹, blue 435.8 nm → 6.879·10¹⁴ s⁻¹, violet 404.7 nm → 7.408·10¹⁴ s⁻¹.",
     ],
     why: "U₀ depends on the frequency of the light, not on its intensity. The differences between filters do not depend on W — use them as a live check that you are reading plateaus.",
     duration: "≈ 40–50 min (incl. warm-up)",
@@ -85,6 +88,9 @@ export const exp7: ExperimentDef = {
     {
       id: "next", role: ["OP", "RD", "AN"], title: "Repeat discharge + 10 readings for every filter",
       how: "Back to ‘select filter’ for green, blue, violet (and UV if present). Do not touch the diaphragm.",
+      see: "Ū₀ grows with frequency: yellow < green < blue < violet. The graph has only 4 points, one per filter.",
+      decision: "If the 4th filter (violet) gives a lower Ū₀ than blue, that filter is defective (it happened to an earlier team). Tap Exclude on its row: the fit then uses the other 3 points. Say so in the report.",
+      notes: ["E7-filter"],
       live: "check",
     },
     {
@@ -98,12 +104,14 @@ export const exp7: ExperimentDef = {
     "Meanwhile: identify A–E, discharge switch; meter on DC V, 0–2 V range.",
     "Filter yellow → discharge → wait for plateau → 10 readings (15–20 s apart).",
     "Repeat for green, blue, violet. Never touch the diaphragm or the wires during readings.",
+    "Table: Filter | λ (nm) | ν (s⁻¹) | Voltage (V) | Ū₀ | σ_Ū₀. ν = c/λ goes next to λ (the professor wants it).",
+    "4 points on the graph. Violet below blue → defective filter: Exclude it, fit 3.",
     "Live check: U₀(violet) − U₀(yellow) ≈ 0.9 V, U₀(blue) − U₀(green) ≈ 0.57 V.",
     "Lamp off (hot!).",
   ],
   tables: [
     {
-      id: "filters", title: "Readings per filter (guide §7.4 table)", path: "filters",
+      id: "filters", title: "Readings per filter (guide §7.4 table, plus ν next to λ)", path: "filters",
       columns: [
         { key: "color", label: "Filter", kind: "text" },
         { key: "lambda", label: "wavelength", unit: "nm" },
@@ -111,14 +119,15 @@ export const exp7: ExperimentDef = {
       ],
       defaults: { color: "", lambda: "" },
       engineTable: "data",
-      derived: [{ key: "N", label: "N" }, { key: "U0", label: "Ū₀", unit: "V" }, { key: "sem", label: "σ_Ū₀", unit: "V" }, { key: "nu", label: "ν", unit: "10¹⁴ Hz" }],
+      derived: [{ key: "nu", label: "ν = c/λ", unit: "10¹⁴ s⁻¹", after: "lambda" }, { key: "N", label: "N" }, { key: "U0", label: "Ū₀", unit: "V" }, { key: "sem", label: "σ_Ū₀", unit: "V" }],
+      note: "The guide's table has only a wavelength column; the professor also wants the frequency ν = c/λ next to it. The lab-sheet table in this layout, one reading per line, is under ‘Full tables with derived columns’ below.",
       rowLabel: (r) => `${r.color || "filter"} ${r.lambda ? r.lambda + " nm" : ""}`,
     },
   ],
   resultInputs: [
     {
       title: "Graphical method (h from your graph-paper plot)",
-      help: "Read two points far apart on your drawn line U₀ vs ν. If your ν axis is in units of 10¹⁴ Hz, put 1e14 in ‘ν scale’. Optional steepest/shallowest lines give σ.",
+      help: "Read two points far apart on your drawn line U₀ vs ν. If your ν axis is in units of 10¹⁴ s⁻¹, put 1e14 in ‘ν scale’. Optional steepest/shallowest lines give σ.",
       fields: [g("x_scale", "ν scale (e.g. 1e14)"), g("x1", "P₁ ν"), g("y1", "P₁ U₀", "V"), g("x2", "P₂ ν"), g("y2", "P₂ U₀", "V"),
         g("max_x1", "steepest P₁ ν"), g("max_y1", "steepest P₁ U₀", "V"), g("max_x2", "steepest P₂ ν"), g("max_y2", "steepest P₂ U₀", "V"),
         g("min_x1", "shallowest P₁ ν"), g("min_y1", "shallowest P₁ U₀", "V"), g("min_x2", "shallowest P₂ ν"), g("min_y2", "shallowest P₂ U₀", "V")],
@@ -193,7 +202,7 @@ $$\nu_{min}=\nu_0=-\frac{b}{a},\qquad \lambda_{max}=\frac{c}{\nu_0},\qquad \sigm
 (the covariance term matters: a and b are strongly anti-correlated).
 
 **Meaning:** ν₀ is the threshold (cut-off) frequency of the photocathode, W = hν₀. Light of lower frequency ejects no electrons however intense it is — the classical wave picture cannot explain this; the photon picture does. Caveat: the contact potential shifts the intercept, so W and ν₀ from this set-up are effective values.`,
-      live: (r) => r?.extra?.q6 ? <LiveTable title="Your data" cols={[["nu0", "ν₀ (Hz)"], ["lam_max", "λ_max (nm)"], ["W", "W (eV)"]]} rows={[r.extra.q6]} /> : null,
+      live: (r) => r?.extra?.q6 ? <LiveTable title="Your data" cols={[["nu0", "ν₀ (s⁻¹)"], ["lam_max", "λ_max (nm)"], ["W", "W (eV)"]]} rows={[r.extra.q6]} /> : null,
     },
   ],
 };

@@ -32,7 +32,8 @@ export interface TableDef {
   defaults?: Record<string, string>;
   fixed?: boolean; // rows given by the guide (no add/remove)
   engineTable?: string; // result table id with derived columns (matched by row id)
-  derived?: { key: string; label: string; unit?: string }[];
+  /** `after`: show the value inline right after that input column (e.g. ν next to λ) instead of below the row */
+  derived?: { key: string; label: string; unit?: string; after?: string }[];
   rowLabel?: (row: Record<string, string>, i: number) => string;
   note?: string;
 }

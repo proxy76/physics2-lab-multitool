@@ -87,7 +87,7 @@ export function DataTable({ def, data, onChange, result, errorField, only, rowId
             {flag && <p className="row-flag">{flag} σ from the line — re-measure?</p>}
             {expected && <p className="row-flag expected">{expected[0].toUpperCase() + expected.slice(1)}.</p>}
             <div className="row-fields">
-              {cols.map((c) =>
+              {cols.flatMap((c) => [
                 c.kind === "fixed" ? (
                   <div key={c.key} className="field fixed">
                     <span className="field-label"><Sym text={c.label} /></span>
@@ -100,11 +100,20 @@ export function DataTable({ def, data, onChange, result, errorField, only, rowId
                   <Field key={c.key} label={c.label} unit={c.unit} hint={c.hint} text={c.kind === "text"} value={String(r[c.key] ?? "")}
                     error={fieldErr(i, c.key)} onChange={(v) => update(i, { [c.key]: v })} />
                 ),
-              )}
+                ...(def.derived ?? []).filter((d) => d.after === c.key).map((d) => (
+                  <div key={`d-${d.key}`} className="field fixed">
+                    <label>
+                      <span className="field-label"><Sym text={d.label} /></span>
+                      {d.unit && <span className="field-unit">{d.unit}</span>}
+                    </label>
+                    <span className="num fixed-val">{derived?.[d.key] ? String(derived[d.key]) : "—"}</span>
+                  </div>
+                )),
+              ])}
             </div>
             {derived && def.derived && (
               <dl className="derived num">
-                {def.derived.map((d) => (derived[d.key] !== undefined && derived[d.key] !== "" ? (
+                {def.derived.filter((d) => !d.after).map((d) => (derived[d.key] !== undefined && derived[d.key] !== "" ? (
                   <div key={d.key}><dt><Sym text={d.label} />{d.unit ? ` (${d.unit})` : ""}</dt><dd>{String(derived[d.key])}</dd></div>
                 ) : null))}
               </dl>

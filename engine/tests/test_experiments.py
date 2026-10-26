@@ -131,7 +131,7 @@ def coverage(exp, key, truth, df, make_kw=None, trials=TRIALS):
 @pytest.mark.parametrize("exp,key,truth,df,kw", [
     ("exp6", "Pb.mu", TRUTH["exp6"]["Pb"], 5, None),
     ("exp6", "Al.mu", TRUTH["exp6"]["Al"], 5, None),
-    ("exp7", "h", TRUTH["exp7"]["h"], 3, None),
+    ("exp7", "h", TRUTH["exp7"]["h"], 2, None),
     ("exp4", "d1", TRUTH["exp4"]["d1"], 4, None),
     ("exp4", "d2", TRUTH["exp4"]["d2"], 4, None),
 ])
@@ -253,6 +253,33 @@ def test_exp7_difference_check():
     res = run("exp7", golden.make("exp7"))
     chk = {c["pair"]: c for c in res["extra"]["difference_check"]}
     assert chk["U₀(404.7 nm) − U₀(578.2 nm)"]["ratio"] == "1.00"
+
+
+# an earlier team's sheet (2026-10): λ written as 578/546/436/405, the 4th (violet) filter was defective
+TEAM7 = [("yellow", "578", "0.483 0.482 0.484 0.485 0.478 0.492 0.490 0.487 0.489 0.494"),
+         ("green", "546", "0.653 0.649 0.648 0.647 0.655 0.657 0.652 0.65 0.651 0.658"),
+         ("blue", "436", "1.086 1.084 1.1 1.083 1.082"),
+         ("violet", "405", "1.04 1.035 1.045 1.042 1.038")]
+
+
+def test_exp7_team_sheet_nu_column_and_defective_filter():
+    filters = [{"id": f"f{i}", "color": c, "lambda": lam, "readings": r.split()} for i, (c, lam, r) in enumerate(TEAM7)]
+    res = run("exp7", {"filters": filters})
+    data = {r["filter"]: r for r in next(t for t in res["tables"] if t["id"] == "data")["rows"]}
+    assert data["yellow"]["nu"] == "5.187" and data["green"]["nu"] == "5.491"  # ν = c/λ, 10¹⁴ s⁻¹
+    assert data["yellow"]["U0"].startswith("0.486") and data["green"]["U0"].startswith("0.652")
+    sheet = next(t for t in res["tables"] if t["id"] == "sheet")
+    assert [c["key"] for c in sheet["columns"]][1:5] == ["filter", "lambda", "nu", "U"]  # ν right next to λ
+    assert len(sheet["rows"]) == 30 and sheet["rows"][0]["nu"] == "5.187" and sheet["rows"][1]["nu"] == ""
+    assert sheet["rows"][9]["U"] == "0.494" and sheet["rows"][17]["U"] == "0.65"  # as typed
+    chk = {c["pair"]: c for c in res["extra"]["difference_check"]}
+    assert "measured" in chk["U₀(435.8 nm) − U₀(546.1 nm)"]  # "436" still matches 435.8
+    assert any(w["code"] == "filter_defective" and "violet" in w["message"] for w in res["warnings"])
+
+    filters[3]["excluded"] = True
+    res = run("exp7", {"filters": filters})
+    assert not any(w["code"] in ("filter_defective", "not_increasing") for w in res["warnings"])
+    assert mpf("5e-34") < val(res, "h") < mpf("6.5e-34")
 
 
 def test_guide_constants_reproduce_eq48():

@@ -52,6 +52,14 @@ Brief milestones M0–M4 are complete, and most of M5 (device QA) is done. Every
 - μ and s_a are unchanged from the old ln(Area/t) fit: ln(A₀/A) = ln A₀ − ln A, and a common time only shifts the intercept. `test_exp6_ratio_and_log_by_hand` checks this.
 - The golden/example data now uses t = 100 s and has no "t" key. `examples.json` was regenerated.
 
+## 2026-10-26: Exp 7 frequency column and the defective 4th filter (an earlier team's sheet)
+
+- The professor wants a ν = c/λ (s⁻¹) column right next to wavelength. The Data/Run cards show ν (10¹⁴ s⁻¹, 4 sig. figs) inline after λ (`TableDef.derived[].after`). The engine adds a `sheet` table in the paper layout: # | Filter | λ | ν | Voltage | Ū₀ | σ_Ū₀, one line per reading as typed. Exp 7 frequency units are now s⁻¹ everywhere (plot, ν₀, fit).
+- The Brief tells you to draw the table with the ν column before the lab and lists ν for the four lines. There are new notes, E7-table and E7-filter.
+- 4 filters means 4 points (the UV filter was dropped from the example data, so the coverage test has df = 2). If the highest-ν point is below the previous one, the engine warns `filter_defective` and says to Exclude that row. Run step "next" and the cheat card say the same.
+- The difference check matches wavelengths within 2 nm, so a sheet that says "578" or "436" still works. λ is echoed as typed.
+- `test_exp7_team_sheet_nu_column_and_defective_filter` uses the team's photographed readings.
+
 ## Next steps
 
 1. **Push**, then check the first CI run, especially the Docker job and the Caddy e2e step (`git push origin main`).

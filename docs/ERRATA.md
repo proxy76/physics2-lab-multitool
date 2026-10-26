@@ -75,4 +75,6 @@ Severity: **M** = mathematics/physics slip (the app computes the corrected form)
 | E7-app | §7.3 | "(see appendix 7.3.2)" | §7.3.2 is a section, not an appendix. | R |
 | E7-yellow | §7.3.2 | 578.2 nm yellow-orange | Unresolved doublet 576.96 / 579.07 nm (NIST ASD); 578.2 nm is a reasonable mean for a yellow filter. | D |
 | E7-order | §7.4 | Lamp switched on in step 4 | The lamp needs 5–10 min, so the Run guide switches it on first (no change to the physics). | D |
+| E7-table | §7.4 table | Filter / wavelength / Voltage / Ū₀ / σ_Ū₀ | The professor also wants a frequency column ν = c/λ (s⁻¹) next to wavelength (an earlier team's sheet, 2026-10). | D |
+| E7-filter | §7.5 graph | Points U₀(ν) | 4 filters → 4 points. An earlier team's violet filter read below blue: defective, so it was left out of the fit (Exclude). | D |
 | E7-W | eq. 7.3 | W_extraction | Experimentally W includes the contact potential between the electrodes; W and ν₀ are "effective" values. | D |

@@ -28,6 +28,8 @@ export const NOTES: Record<string, GuideNote> = {
   "E7-app": { kind: "typo", title: "'Appendix 7.3.2'", text: "§7.3.2 is a section, not an appendix." },
   "E7-yellow": { kind: "discussion", title: "578.2 nm", text: "The yellow Hg line is an unresolved doublet 576.96/579.07 nm (NIST); 578.2 nm is a fair mean for a yellow filter." },
   "E7-W": { kind: "discussion", title: "W is an effective value", text: "The contact potential between cathode and anode shifts U₀ by a constant, so W and ν₀ are effective values. The slope h/e is unaffected." },
+  "E7-table": { kind: "discussion", title: "§7.4 table: add a ν column", text: "The guide's table has only a wavelength column. The professor wants a frequency column ν = c/λ (s⁻¹) right next to it: Filter | λ (nm) | ν (s⁻¹) | Voltage (V) | Ū₀ (V) | σ_Ū₀ (V). That is the only change." },
+  "E7-filter": { kind: "discussion", title: "4 points; a defective 4th filter", text: "There are 4 filters, so the U₀(ν) graph has 4 points. An earlier team's violet filter gave a U₀ below blue's although its frequency is higher: that filter was defective. If yours does the same, leave that point out of the fit (Exclude) and fit the other 3. Mention it in the report." },
   "E7-order": { kind: "discussion", title: "Lamp first", text: "The guide switches the lamp on in step 4; it needs 5–10 min, so the run guide does it first. Nothing else changes." },
   "E3-honesty": { kind: "discussion", title: "Calibration uncertainty in R", text: "The Rydberg fit's s_a ignores the error of A and B, which is common to all five λ_H. The app also shows σ_R including the calibration (√(s_a² + σ_cal²))." },
 };
