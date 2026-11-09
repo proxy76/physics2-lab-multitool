@@ -21,6 +21,7 @@ from .experiments.exp4 import lam_nonrel  # noqa: F401  (documentation of the mo
 from .experiments.exp5 import g_exact, x_approx
 
 TRUTH = {
+    "exp2": {"tau": "1.5e-4", "s1": "118", "s2": "145", "nb": "1.2", "T": "60"},
     "exp5": {"lambda": "1.0e5", "nb": "2.5"},
     "exp6": {"Al": "0.20", "Fe": "0.58", "Pb": "1.25", "rate0": "60"},
     "exp7": {"h": "6.62607015e-34", "W_eV": "1.55"},
@@ -105,6 +106,23 @@ def _exp7(rng, model, **kw):
     return {"filters": filters}
 
 
+def _exp2(rng, model, **kw):
+    """Two-source dead time. True rates s1 + nb, s2 + nb, s1 + s2 + nb, nb are lost by a non-paralysable
+    detector: measured n' = n/(1 + nτ). model="exact" keeps that physics (the Advanced exact solution
+    recovers τ); model="approx" sets n'_12b so that eq. 2.3 itself holds exactly (headline recovers τ)."""
+    T_ = TRUTH["exp2"]
+    tau, s1, s2, nb = (mpf(T_[k]) for k in ("tau", "s1", "s2", "nb"))
+    T = mpf(kw.get("T", T_["T"]))
+    meas = lambda n: n / (1 + n * tau)  # noqa: E731
+    mb, m1, m2, m12 = meas(nb), meas(s1 + nb), meas(s2 + nb), meas(s1 + s2 + nb)
+    if model == "approx":
+        m12 = (m1 + m2 - mb - 2 * tau * m1 * m2) / (1 - 2 * tau * mb)
+    cnt = (lambda m: s(m * T)) if rng is None else (lambda m: str(_poisson(rng, float(m * T))))
+    sets = [{"id": f"s{i}", "T": str(int(T)) if T == int(T) else s(T), "Nb": cnt(mb), "N1": cnt(m1), "N2": cnt(m2), "N12": cnt(m12)}
+            for i in range(kw.get("sets", 3))]
+    return {"sets": sets, "background0": {"N": cnt(mb), "T": sets[0]["T"]}}
+
+
 def _exp3(rng, model, **kw):
     T = TRUTH["exp3"]
     R, A, B = mpf(T["R"]), mpf(T["A"]), mpf(T["B"])
@@ -153,13 +171,13 @@ def _poisson(rng: random.Random, lam: float) -> int:
             return kk - 1
 
 
-_MAKERS = {"exp3": _exp3, "exp4": _exp4, "exp5": _exp5, "exp6": _exp6, "exp7": _exp7}
+_MAKERS = {"exp2": _exp2, "exp3": _exp3, "exp4": _exp4, "exp5": _exp5, "exp6": _exp6, "exp7": _exp7}
 
 
 def examples(seed: int = 2026) -> dict:
     """Realistic example datasets for the app (rounded like real readings)."""
     out = {}
-    for e in ("exp5", "exp6", "exp7", "exp3", "exp4"):
+    for e in ("exp5", "exp6", "exp7", "exp2", "exp3", "exp4"):
         rng = random.Random(seed)
         kw = {"vernier": True} if e == "exp3" else {}
         out[e] = make(e, rng, **kw)

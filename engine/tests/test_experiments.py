@@ -88,6 +88,9 @@ def test_dimension_sanity():
     r6 = run("exp6", ex["exp6"])
     for s in ("Al", "Fe", "Pb"):
         assert mpf("0.1") <= val(r6, f"{s}.mu") <= mpf("2")
+    r2 = run("exp2", ex["exp2"])
+    for i in (1, 2, 3):
+        assert mpf("20") < val(r2, f"tau{i}") < mpf("1000")  # μs
     r5 = run("exp5", ex["exp5"])
     assert val(r5, "lambda1") > 0 and val(r5, "lambda2") > 0
 
@@ -97,7 +100,7 @@ def test_dimension_sanity():
 # ------------------------------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("exp", ["exp3", "exp4", "exp5", "exp6", "exp7"])
+@pytest.mark.parametrize("exp", ["exp2", "exp3", "exp4", "exp5", "exp6", "exp7"])
 def test_selfcheck(exp):
     res = run(exp, golden.examples()[exp], selfcheck=True)
     sc = res["selfcheck"]
@@ -288,7 +291,7 @@ def test_guide_constants_reproduce_eq48():
     assert r["result"]["values"]["C"]["value"].startswith("3.3")
 
 
-@pytest.mark.parametrize("exp", ["exp3", "exp4", "exp5", "exp6", "exp7"])
+@pytest.mark.parametrize("exp", ["exp2", "exp3", "exp4", "exp5", "exp6", "exp7"])
 def test_json_serialisable(exp):
     import json
 
@@ -353,3 +356,102 @@ def test_exp6_needs_x0():
     res = run("exp6", p)
     assert "Al.mu" not in res["values"]
     assert any(w["code"] == "need_zero" for w in res["warnings"])
+
+
+# ------------------------------------------------------------------------------------------------
+# Exp 2 — dead time, two-source method
+# ------------------------------------------------------------------------------------------------
+
+# The team's final sheet (photographed, 2026-11-09): T = 60 s, three sets.
+EXP2_SHEET = [("60", "76", "7047", "8630", "15358"), ("60", "67", "7075", "8542", "15235"), ("60", "77", "6969", "8666", "14979")]
+
+
+def exp2_sheet():
+    return {"sets": [dict(zip(("T", "Nb", "N1", "N2", "N12"), r), id=f"s{i}") for i, r in enumerate(EXP2_SHEET)]}
+
+
+def test_exp2_exact_eq23():
+    # n'_12b chosen so that eq. 2.3 holds exactly: the headline recovers τ to ≥ 30 digits
+    res = run("exp2", golden.make("exp2", model="approx"))
+    for i in (1, 2, 3):
+        assert rel_digits(val(res, f"tau{i}") / mpf("1e6"), TRUTH["exp2"]["tau"]) >= 30
+
+
+def test_exp2_exact_physics():
+    # non-paralysable detector: the exact solution of eq. 2.2 recovers τ; eq. 2.3 (first order) is ~2 % low
+    res = run("exp2", golden.make("exp2"))
+    assert rel_digits(val(res, "adv.exact1") / mpf("1e6"), TRUTH["exp2"]["tau"]) >= 30
+    assert mpf("0.95") < val(res, "tau1") / val(res, "adv.exact1") < 1
+
+
+def test_exp2_team_sheet():
+    # Every number the sheet writes, to the sheet's precision.
+    res = run("exp2", exp2_sheet())
+    g = res["extra"]["guide"]["sets"]
+    assert [(s["nb"], s["n1"], s["n2"], s["n12"]) for s in g][0] == ("1.27", "117.45", "143.83", "255.97")
+    assert [s["X"] for s in g] == ["4.05", "5.25", "9.65"]
+    assert [s["Y"] for s in g] == ["33138.00", "33007.73", "32911.10"]
+    assert [s["tau_us"] for s in g] == ["122.22", "159.05", "293.21"]
+    assert [s["sX"] for s in g] == ["2.94", "2.93", "2.92"]
+    assert [s["sY"] for s in g] == ["547.6", "544.2", "544.8"]
+    assert [s["s_tau_us"] for s in g] == ["88.7", "88.8", "88.9"]
+    assert [s["report"] for s in g] == ["(1.2 ± 0.9)×10² μs", "(1.6 ± 0.9)×10² μs", "(2.9 ± 0.9)×10² μs"]
+    assert g[0]["pm"] == "122.22 ± 88.7"
+    # X from the counts (243/60 = 4.05); the sheet's 2-decimal rates would give 4.04
+    assert g[0]["Ncomb"] == "243" and g[0]["X_rates"] == "4.04"
+    sheet = next(t for t in res["tables"] if t["id"] == "sheet")
+    assert [r["no"] for r in sheet["rows"]] == ["1", "2", "3"] and sheet["rows"][2]["N12"] == "14979"
+    concl = next(t for t in res["tables"] if t["id"] == "conclusions")
+    assert [r["tau"] for r in concl["rows"]] == ["122.22", "159.05", "293.21"]
+    assert not [w for w in res["warnings"] if w["severity"] == "warn"]
+    # the full gradient (X and Y share the rates) gives a slightly smaller σ
+    assert mpf("80") < val(res, "adv.grad1") < mpf("88.7")
+
+
+def test_exp2_negative_tau_and_partial_sets():
+    p = exp2_sheet()
+    p["sets"][1]["N12"] = "15700"  # n12 + nb > n1 + n2
+    p["sets"].append({"id": "s3", "T": "60", "N1": "7000"})  # set 4 started: source 1 only
+    res = run("exp2", p)
+    assert any(w["code"] == "negative" and "Set 2" in w["message"] for w in res["warnings"])
+    assert val(res, "tau2") < 0
+    g = res["extra"]["guide"]["sets"]
+    assert len(g) == 4 and not g[3]["complete"] and g[3]["n1"] == "116.67" and "tau_us" not in g[3]
+    assert "tau4" not in res["values"]
+
+
+def test_exp2_no_complete_set():
+    res = run("exp2", {"sets": [{"id": "a", "T": "60", "Nb": "70"}]})
+    assert any(w["code"] == "need_sets" for w in res["warnings"]) and not res["values"]
+
+
+def test_exp2_field_errors():
+    p = exp2_sheet()
+    p["sets"][0]["T"] = "0"
+    r = api.dispatch("exp2.analyze", p)
+    assert not r["ok"] and r["error"]["field"] == "sets[0].T"
+
+
+def test_exp2_background_check():
+    p = exp2_sheet()
+    p["background0"] = {"N": "300", "T": "60"}
+    res = run("exp2", p)
+    assert any(w["code"] == "background" for w in res["warnings"])
+
+
+@pytest.mark.slow
+def test_coverage_exp2_poisson_sigma():
+    """Exp 2 with Poisson counts: the quotient-rule σ_τ of the sheet is honest (≈ 95 % within 2σ)."""
+    f = coverage_z("exp2", "tau1", mpf(TRUTH["exp2"]["tau"]) * mpf("1e6"), trials=1000)
+    assert 0.93 <= f <= 0.98, f
+
+
+def test_exp2_excluded_set():
+    p = exp2_sheet()
+    p["sets"][2]["excluded"] = True
+    res = run("exp2", p)
+    assert "tau3" not in res["values"] and "tau2" in res["values"]
+    sheet = next(t for t in res["tables"] if t["id"] == "sheet")
+    assert len(sheet["rows"]) == 3 and sheet["rows"][2]["excluded"]
+    concl = next(t for t in res["tables"] if t["id"] == "conclusions")
+    assert [r["no"] for r in concl["rows"]] == ["1", "2"]

@@ -7,7 +7,7 @@ test.use({ serviceWorkers: "block" }); // offline behaviour has its own spec
 test("home lists the experiments in the team's order with a Next-up card", async ({ page }) => {
   await page.goto("/");
   const cards = page.locator(".exp-card");
-  await expect(cards).toHaveCount(5);
+  await expect(cards).toHaveCount(EXPS.length);
   const kickers = await cards.locator(".exp-num").allTextContents();
   const order = kickers.join(" ").match(/Exp\. (\d)/g)?.map((s) => s.slice(-1));
   expect(order).toEqual([...EXPS]);
@@ -104,7 +104,7 @@ test("no page scrolls sideways on a phone", async ({ page }) => {
   await engineReady(page);
   for (const e of EXPS) await loadExample(page, e);
   const pages = ["#/", "#/calc", "#/settings", ...EXPS.flatMap((e) => ["brief", "run", "data", "results", "questions"].map((t) => `#/exp/${e}/${t}`)),
-    ...["stats", "counting", "linfit", "quick", "propagate", "graphical", "report", "units", "decay"].map((t) => `#/calc/${t}`), ...EXPS.map((e) => `#/answers/${e}`), "#/exp/6/analysis/Al", "#/exp/6/analysis/Pb"];
+    ...["stats", "counting", "linfit", "quick", "propagate", "graphical", "report", "units", "decay"].map((t) => `#/calc/${t}`), ...EXPS.map((e) => `#/answers/${e}`), "#/exp/6/analysis/Al", "#/exp/6/analysis/Pb", "#/exp/2/analysis"];
   const wide: string[] = [];
   const check = async (where: string) => {
     const [sw, cw] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);

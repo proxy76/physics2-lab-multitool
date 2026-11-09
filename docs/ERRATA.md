@@ -20,6 +20,17 @@ Severity: **M** = mathematics/physics slip (the app computes the corrected form)
 | B-B1 | eq. B.1, 2nd equation | Σyᵢ − a·**Σyᵢ** − b·n = 0 | Σyᵢ − a·**Σxᵢ** − b·n = 0 | M |
 | B-final | B.2–B.11 | — | Correct; implemented and verified against NIST StRD (Norris) to ≥ 12 digits. | — |
 
+## Experiment 2 — Dead time
+
+| ID | Where | What the guide says | Correct | Sev. |
+|---|---|---|---|---|
+| E2-us | §2.2 | "The dead time of Geiger-Müller detectors is a few μs" | Typically 50–300 μs for GM tubes (Knoll, ch. 7); the team's sheet found 122–293 μs. | M |
+| E2-prime | eqs. 2.1–2.3 | Real n vs measured n′ | Eq. 2.3 contains only measured rates. The sheet and the app write them without the prime. | R |
+| E2-first | eq. 2.3 | τ = X/Y | First-order expansion of the exact (quadratic) solution of 2.2 for a non-paralysable detector (Knoll §4.VII); ≈ 2 % low at these rates, far below σ_τ. Advanced shows the exact value. | D |
+| E2-XY | §2.6 / Q4 | Simplify with Q3 | The quotient rule treats X and Y as independent although they share the rates; the full derivatives give σ_τ ≈ 2 % smaller. Advanced shows both. | D |
+| E2-sheet | §2.6–2.7 | σ for one set; report only that set | The team's final sheet computes τ ± σ_τ for every set and lists all of them; the app follows the sheet. | D |
+| E2-avg | §2.7 note | Explain why averaging is not correct | τ is non-linear in the rates and every set has its own σ. Pooling the counts (Advanced) is the correct combination. | D |
+
 ## Experiment 3 — Rydberg constant
 
 | ID | Where | What the guide says | Correct | Sev. |

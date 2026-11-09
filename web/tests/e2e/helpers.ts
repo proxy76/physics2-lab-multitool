@@ -1,6 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 
-export const EXPS = ["5", "6", "7", "3", "4"] as const;
+export const EXPS = ["5", "6", "7", "2", "3", "4"] as const;
 
 export async function engineReady(page: Page) {
   await expect(page.getByRole("status").filter({ hasText: "Engine ready" })).toBeVisible({ timeout: 90_000 });

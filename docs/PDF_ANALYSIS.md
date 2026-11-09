@@ -1,4 +1,4 @@
-# PDF analysis — coverage checklist (Experiments 3–7)
+# PDF analysis — coverage checklist (Experiments 2–7)
 
 Source: `LaboratoryGuide.pdf` (64 pages, printed page numbers = PDF page indices).
 Every item has an ID. The **Feature** column names where the app covers it:
@@ -29,6 +29,49 @@ Shared conventions read from Experiments 1, 2, 8 and the appendices are listed f
 | S-8 | Interaction of photons with matter: photoelectric / Compton / pair production; Fig. C.1 (Pb cross-sections) | App. C | BRIEF:6, Q:6.3, Q:6.5 |
 | S-9 | Every experiment: "If a data point is too far from [the line], repeat the measurement" | §3.5, §4.5 (and §1.5) | Data tab outlier flag + "Re-measure?" prompt |
 | S-10 | Comparisons "Compare your results with …" | §3.7 (implied), §4.7, §1.7 | CALC:G6 comparison, RES compare panels |
+
+---
+
+## Experiment 2 — Dead time of a Geiger–Müller counter, two-source method (pp. 11–16)
+
+Added 2026-11-09. The layout follows the team's final sheet (photos 2026-11-09): table, formulas, τ per set, σ_τ per set, conclusions table with every set, and the sentence on why the sets are not averaged.
+
+**Purpose (§2.1).** Determine the dead time of a Geiger–Müller counter.
+
+**Theory (§2.2).** GM avalanche; dead time = minimum time after one detection before the next can be detected (the guide says "a few μs" — see ERRATA E2-us). Losses N − N′ = (N′τ)·N/T → n = n′/(1 − n′τ) (2.1). Real rates with source 1, source 2, both, none: n₁₂b + n_b = n₁b + n₂b (2.2). Solved with the measured rates: τ = (n₁b + n₂b − n₁₂b − n_b)/[2(n₁b·n₂b − n₁₂b·n_b)] (2.3).
+
+**Apparatus (§2.3).** GM counter; its auxiliary system (Fig. 2.1, buttons labelled in red); two sources in a closed enclosure with a sliding lid (one, the other, or both uncovered; Fig. 2.2); pulse counter.
+
+| ID | Procedure step (§2.4) | Feature |
+|---|---|---|
+| E2-P1 | Measure the background count rate | RUN:2#bg0 (fields background0.N/T, 60 s timer; consistency check against every set's N_b) |
+| E2-P2 | Ask for the sources | RUN:2#sources |
+| E2-P3 | Uncover one source, measure; front-panel time 60 or 100 s | RUN:2#time, RUN:2#s1 (60 s timer, live n₁b) |
+| E2-P4 | Uncover the other source only, measure | RUN:2#s2 (live n₂b) |
+| E2-P5 | Uncover both, measure | RUN:2#s12 (live n₁₂b and the n₁b + n₂b check) |
+| E2-P6 | Cover all, measure | RUN:2#sb (live τ of the set) |
+| E2-P7 | Repeat 3–6 until at least three sets | RUN:2#repeat (Run entries move to the next set by themselves) |
+
+| ID | Table | Columns | Feature |
+|---|---|---|---|
+| E2-T1 | §2.4 example table | No, T, N_b, n_b, N₁b, n₁b, N₂b, n₂b, N₁₂b, n₁₂b, τ (units blank) | DATA:2/sets (rates inline after each count); RES:2/sheet in the sheet's units (s, c/s, μs) with τ ± σ_τ per set; Analysis step 1 |
+| E2-T2 | §2.7 conclusions | Measured dead-time (τ)(…), Uncertainty (…) | RES:2/conclusions, Analysis step 6 (every set, as on the sheet, plus the rounded result) |
+
+| ID | Analysis / uncertainty (§2.5–2.6) | Feature |
+|---|---|---|
+| E2-A1 | τ for each set | Analysis step 3 (substituted eq. 2.3 per set, rates with 2 decimals; X taken from the counts) |
+| E2-U1 | σ_τ by propagation through eq. 2.3 for one set, simplified with Q3–Q6 | Analysis step 4: σ_τ = (X/Y)√(σ_X²/X² + σ_Y²/Y²) with σ_X, σ_Y and σ²_n = N/T², for every set (the sheet does all three, NOTE:E2-sheet); Advanced: full partial derivatives (NOTE:E2-XY) |
+| E2-C1 | §2.7 note: report only the set with σ; explain why averaging is not correct | Analysis step 6 sentence (the sheet's wording), NOTE:E2-avg; Advanced: pooled counts |
+
+| ID | Question (§2.8) | Feature |
+|---|---|---|
+| E2-Q1 | "Explain formula 2.2." | Q:2.1 |
+| E2-Q2 | "Write the uncertainty propagation formula for a function of two variables;" | Q:2.2 |
+| E2-Q3 | "Using the uncertainty propagation formula calculate: (a) … x + y; (b) … x·y; (c) … x/y" | Q:2.3 |
+| E2-Q4 | "Write the uncertainty propagation formula applied to equation 2.3. Can you simplify it (and/or the calculations) using the results of question 3?" | Q:2.4 |
+| E2-Q5 | "How many significant digits should the uncertainty be written with …? How many significant digits should the final result be written with?" | Q:2.5 |
+| E2-Q6 | "What is the uncertainty of a counting experiment (assuming a Poisson distribution) when the number of measured counts is N? What is the uncertainty of the count rate?" | Q:2.6 |
+| E2-Q7 | "(Optional) Is it possible for the measured deadtime to be negative? Justify your answer using equation 2.3." | Q:2.7, `negative` warning |
 
 ---
 
@@ -257,4 +300,4 @@ Shared conventions read from Experiments 1, 2, 8 and the appendices are listed f
 | E7-X1 | Exp 7 §7.4 step 2: explain eq. 7.3 | Q:7.step2 |
 | E5-X1 | Exp 5 §5.5 step 1: "Answer questions 3, 4" before analysis | Results tab links to Q:5.3, Q:5.4 |
 | E6-X1 | Exp 6 §6.5 step 1: "Answer question 1" | Results tab links to Q:6.1 |
-| E2-X1 | Exp 2 §2.7 note (shared reasoning, out of scope): averaging only with uncertainties — not needed | — |
+| E2-X1 | Exp 2 §2.7 note: explain why averaging the sets is not correct | Analysis 2 step 6, NOTE:E2-avg |

@@ -14,7 +14,7 @@ const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceSc
 const p = await ctx.newPage();
 await p.goto(BASE + "#/");
 await p.getByText("Engine ready").waitFor({ timeout: 90_000 });
-for (const e of (process.env.EXPS || "5,6,7,3,4").split(",")) {
+for (const e of (process.env.EXPS || "5,6,7,2,3,4").split(",")) {
   await p.goto(BASE + `#/exp/${e}/brief`);
   await p.locator(".session-bar summary").click();
   await p.getByRole("button", { name: "Load example data" }).click();

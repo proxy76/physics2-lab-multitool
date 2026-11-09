@@ -12,7 +12,7 @@ import traceback
 from mpmath import mp, mpf, workdps
 
 from . import CHECK_DPS, WORK_DPS, constants, counting, decay, graphical, linfit, montecarlo, propagate, stats, units
-from .experiments import exp3, exp4, exp5, exp6, exp7
+from .experiments import exp2, exp3, exp4, exp5, exp6, exp7
 from .parse import ParseError, is_blank, parse_list, parse_number, parse_optional, split_list
 from .result import Result, cell, num
 from .rounding import fmt_sig, full, round_report, tex_sig as t
@@ -376,6 +376,7 @@ TOOLS = {
     "constants": tool_constants,
     "decay": tool_decay,
     "selftest": tool_selftest,
+    "exp2.analyze": lambda p, k, o: exp2.analyze(p, k, o),
     "exp3.analyze": lambda p, k, o: exp3.analyze(p, k, o),
     "exp4.analyze": lambda p, k, o: exp4.analyze(p, k, o),
     "exp5.analyze": lambda p, k, o: exp5.analyze(p, k, o),
@@ -383,7 +384,7 @@ TOOLS = {
     "exp7.analyze": lambda p, k, o: exp7.analyze(p, k, o),
 }
 
-EXP_OF = {"exp3.analyze": "exp3", "exp4.analyze": "exp4", "exp5.analyze": "exp5", "exp6.analyze": "exp6", "exp7.analyze": "exp7"}
+EXP_OF = {"exp2.analyze": "exp2", "exp3.analyze": "exp3", "exp4.analyze": "exp4", "exp5.analyze": "exp5", "exp6.analyze": "exp6", "exp7.analyze": "exp7"}
 
 
 def _run(tool, params, const_set, options, dps):

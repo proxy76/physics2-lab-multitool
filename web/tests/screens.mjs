@@ -17,7 +17,7 @@ const VIEWPORTS = {
 for (const k of Object.keys(VIEWPORTS)) if (!(process.env.VPS || "phone,desktop").split(",").includes(k)) delete VIEWPORTS[k];
 const ONLY = process.env.ONLY ? new RegExp(process.env.ONLY) : null; // e.g. ONLY="exp5|home"
 const THEMES = (process.env.THEMES || "dark,darkroom,light").split(",");
-const EXPS = ["5", "6", "7", "3", "4"];
+const EXPS = ["5", "6", "7", "2", "3", "4"];
 const TABS = ["brief", "run", "data", "results", "questions"];
 
 const browser = await chromium.launch();

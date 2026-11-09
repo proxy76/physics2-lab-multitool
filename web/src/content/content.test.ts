@@ -48,8 +48,8 @@ describe("content strings", () => {
 });
 
 describe("experiments", () => {
-  it("are in the team's order 5 → 6 → 7 → 3 → 4", () => {
-    expect(EXPERIMENTS.map((e) => e.id)).toEqual(["5", "6", "7", "3", "4"]);
+  it("are in the team's order 5 → 6 → 7 → 2 → 3 → 4", () => {
+    expect(EXPERIMENTS.map((e) => e.id)).toEqual(["5", "6", "7", "2", "3", "4"]);
   });
 
   it.each(EXPERIMENTS.map((e) => [e.id, e] as const))("Exp %s: every question has an answer, every step a role and a title", (_, e) => {

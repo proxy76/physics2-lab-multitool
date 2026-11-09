@@ -1,6 +1,6 @@
 # Build status and handoff
 
-Last updated: 2026-10-06. Read this first when resuming.
+Last updated: 2026-11-09. Read this first when resuming.
 
 ## Where things stand
 
@@ -59,6 +59,16 @@ Brief milestones M0–M4 are complete, and most of M5 (device QA) is done. Every
 - 4 filters means 4 points (the UV filter was dropped from the example data, so the coverage test has df = 2). If the highest-ν point is below the previous one, the engine warns `filter_defective` and says to Exclude that row. Run step "next" and the cheat card say the same.
 - The difference check matches wavelengths within 2 nm, so a sheet that says "578" or "436" still works. λ is echoed as typed.
 - `test_exp7_team_sheet_nu_column_and_defective_filter` uses the team's photographed readings.
+
+## 2026-11-09: Exp 2, dead time (two-source method), from the guide and the team's final sheet
+
+- New experiment 2 everywhere: engine `exp2.analyze` (`labcalc/experiments/exp2.py`), golden data, examples, `web/src/content/exp2.tsx` and `exp2Guide.tsx` (Run panels and Analysis tab), notes E2-*, ERRATA and PDF_ANALYSIS sections. App order: 5 → 6 → 7 → 2 → 3 → 4.
+- Layout follows the final sheet (photos `WhatsApp Image 2026-11-09 …`): No. | T (s) | N_b | n_b (c/s) | N₁b | n₁b | N₂b | n₂b | N₁₂b | n₁₂b | τ ± σ_τ (μs). τ = X/Y (eq. 2.3) and σ_τ = (X/Y)√(σ_X²/X² + σ_Y²/Y²) with σ²_n = N/T², worked for **every** set; the conclusions table lists every set, with the sentence on why they are not averaged. Rates and τ (μs) with 2 decimals, σ_τ with 3 significant figures, plus the GUM-rounded result, e.g. (1.2 ± 0.9)×10² μs.
+- X is computed from the counts ((N₁b + N₂b − N₁₂b − N_b)/T), because rounding the rates first changes it (4.04 vs 4.05 on the sheet). The app says so when it happens.
+- `test_exp2_team_sheet` checks every number on the sheet: X, Y, τ = 122.22/159.05/293.21 μs, σ_X, σ_Y = 547.6/544.2/544.8, σ_τ = 88.7/88.8/88.9 μs. (The sheet writes 122.21 for set 1; 122.216 rounds to 122.22.)
+- Warnings: τ ≤ 0 (Q7), n₁₂b below a single-source rate (lid), a set's background > 3σ from the first background, fewer than 3 sets, σ_τ/τ > 50 %. Exclude on a set keeps it in the sheet and drops it from the results.
+- Advanced: the exact solution of eq. 2.2 (Knoll), σ from the full partial derivatives, and all sets pooled.
+- Long formulas are split with `\qquad`, so `Tex` stacks them. On a 390 px phone no formula block scrolls sideways on the Brief, Analysis, Results or Questions tabs of Exp 2.
 
 ## Next steps
 

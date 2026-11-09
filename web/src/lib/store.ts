@@ -5,7 +5,7 @@ import { useRef, useSyncExternalStore } from "react";
 import type { ConstantsSet } from "./engineTypes";
 
 export type Theme = "dark" | "light" | "darkroom";
-export type ExpId = "5" | "6" | "7" | "3" | "4";
+export type ExpId = "5" | "6" | "7" | "2" | "3" | "4";
 
 export interface Settings {
   constants: ConstantsSet;

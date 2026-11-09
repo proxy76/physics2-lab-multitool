@@ -47,7 +47,7 @@ export function Home() {
     <div className="page home">
       <section className="home-intro">
         <h1>Physics 2 lab</h1>
-        <p className="lede">Five experiments in your order. Each has a 60-second brief, a step-by-step run guide split by role, data entry where the numbers appear, the analysis exactly as the guide asks, and the answer key.</p>
+        <p className="lede">Six experiments in your order. Each has a 60-second brief, a step-by-step run guide split by role, data entry where the numbers appear, the analysis exactly as the guide asks, and the answer key.</p>
         {lastExp && lastRoute !== "#/" && (
           <button type="button" className="btn primary big" onClick={() => go(lastRoute)}>
             Continue Exp. {EXP[lastExp]?.n} where you left off

@@ -1,5 +1,6 @@
 import answers from "./generated/answers.json";
 import examples from "./generated/examples.json";
+import { exp2 } from "./exp2";
 import { exp3 } from "./exp3";
 import { exp4 } from "./exp4";
 import { exp5 } from "./exp5";
@@ -8,9 +9,9 @@ import { exp7 } from "./exp7";
 import type { ExperimentDef } from "./types";
 import type { ExpId } from "../lib/store";
 
-/** The team's order: 5 → 6 → 7 → 3 → 4. */
-export const EXPERIMENTS: ExperimentDef[] = [exp5, exp6, exp7, exp3, exp4];
-export const EXP: Record<ExpId, ExperimentDef> = { "5": exp5, "6": exp6, "7": exp7, "3": exp3, "4": exp4 };
+/** The team's order: 5 → 6 → 7 → 2 → 3 → 4. */
+export const EXPERIMENTS: ExperimentDef[] = [exp5, exp6, exp7, exp2, exp3, exp4];
+export const EXP: Record<ExpId, ExperimentDef> = { "5": exp5, "6": exp6, "7": exp7, "2": exp2, "3": exp3, "4": exp4 };
 
 export const ANSWERS = answers as Record<string, unknown>;
 
