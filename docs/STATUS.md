@@ -1,6 +1,6 @@
 # Build status and handoff
 
-Last updated: 2026-11-09. Read this first when resuming.
+Last updated: 2026-11-23. Read this first when resuming.
 
 ## Where things stand
 
@@ -69,6 +69,34 @@ Brief milestones M0–M4 are complete, and most of M5 (device QA) is done. Every
 - Warnings: τ ≤ 0 (Q7), n₁₂b below a single-source rate (lid), a set's background > 3σ from the first background, fewer than 3 sets, σ_τ/τ > 50 %. Exclude on a set keeps it in the sheet and drops it from the results.
 - Advanced: the exact solution of eq. 2.2 (Knoll), σ from the full partial derivatives, and all sets pooled.
 - Long formulas are split with `\qquad`, so `Tex` stacks them. On a 390 px phone no formula block scrolls sideways on the Brief, Analysis, Results or Questions tabs of Exp 2.
+
+## 2026-11-23: Exp 3 step-by-step Analysis tab (Rydberg), from another team's final sheet
+
+- Source: Team 4's sheet (six photos in `WhatsApp Unknown 2026-11-23 at 5.44.33 PM.zip`, not committed). The Analysis tab (`web/src/content/exp3Guide.tsx`, engine `exp3._sheet` → `extra.guide`) follows its order:
+  1. Tables 1 and 2 across the page.
+  2. λ → 1/λ² for each line.
+  3. Graph 1 (x_Hg vs 1/λ²) with scales, points and the **graphical** B, A from two points.
+  4. **LSM** sums S_x, S_y, S_xy, S_xx, then B and A.
+  5. λ_H = √(B/(x_H − A)) per line.
+  6. λ_H⁻¹ and n_i⁻².
+  7. Graph 2 with the **graphical** R_H (optional steepest/shallowest lines give σ).
+  8. **LSM** −R_H, S_yy, s_ε², s_RH.
+  9. Rounding, the conclusions table, CODATA, and graphical vs LSM.
+- Units are the sheet's: x in a.u., 1/λ² in 10¹² m⁻², 1/λ in 10⁶ m⁻¹ (1 µm⁻² = 10¹² m⁻², so the numbers match the Results tab).
+- **1:1 rule:** each written number is its formula applied to the *written* numbers before it, in exact decimal arithmetic, then rounded. So every line can be redone on a calculator. Precision:
+  - 1/λ², λ_H, λ_H⁻¹ and n⁻²: 4 significant digits.
+  - B: 4 significant digits.
+  - A: 4 significant digits, but at least 2 decimals.
+  - Sums: exact.
+  - R_H: 7 digits, because s_ε² is a small difference of large numbers. The bracket is shown term by term.
+- Differences from the team's sheet:
+  - 1/λ² is rounded where the sheet truncated (6.106 vs 6.105). B = −7.184 and A = 65.76 come out the same, and so do all five λ_H (681.7, 487.2, 432.2, 411.8, 398.4).
+  - λ_H⁻¹ has 4 digits (the sheet has 3).
+  - The sheet's R_H = 11.61 came from rounding S_xy to 0.502. Keeping the digits gives **R_H = (11.5 ± 0.2)·10⁶ m⁻¹**, which matches the full-precision fit (11.530).
+- Run: panels under the Hg/H tables and a new last step "Done" with R_H and a link to the Analysis tab.
+- Graphical inputs are stored at `graphical.cal.{x1,y1,x2,y2}` and `graphical.ryd.{…, max_*, min_*}`.
+- `test_exp3_team_sheet` and `test_exp3_sheet_partial_and_graphical` check every number.
+- On a 390 px phone no formula block scrolls sideways (measured): long sums go 2–3 terms per line, and numerator/denominator get their own lines.
 
 ## Next steps
 

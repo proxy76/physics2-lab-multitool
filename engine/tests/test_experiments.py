@@ -455,3 +455,63 @@ def test_exp2_excluded_set():
     assert len(sheet["rows"]) == 3 and sheet["rows"][2]["excluded"]
     concl = next(t for t in res["tables"] if t["id"] == "conclusions")
     assert [r["no"] for r in concl["rows"]] == ["1", "2"]
+
+
+# --- Exp 3: the other team's final sheet (Team 4, photos 2026-11-23) -----------------------------
+EXP3_HG = ["404.7", "407.8", "433.9", "434.7", "435.8", "535.4", "546.1", "577.0", "579.0", "612.3", "623.4"]
+EXP3_X = ["22.5", "23", "27", "27.3", "27.8", "40.4", "41.6", "43.9", "44.3", "47.1", "47.6"]
+EXP3_H = [("Hα", "3", "50.3"), ("Hβ", "4", "35.5"), ("Hγ", "5", "27.3"), ("Hδ", "6", "23.4"), ("Hε", "7", "20.5")]
+
+
+def exp3_sheet():
+    return {"hg": [{"id": f"hg{i}", "lambda": lam, "x": x} for i, (lam, x) in enumerate(zip(EXP3_HG, EXP3_X))],
+            "h": [{"id": f"h{i}", "line": a, "n": n, "x": x} for i, (a, n, x) in enumerate(EXP3_H)], "sigma_x": "0.05", "lambda_set": "guide"}
+
+
+def test_exp3_team_sheet():
+    res = run("exp3", exp3_sheet())
+    g = res["extra"]["guide"]
+    assert g["stage"] == 3
+    # 1/λ² with 4 significant digits, rounded (the sheet truncates: 6.105, 5.311, 3.488, 3.003, 2.982)
+    assert [r["X"] for r in g["hg"]] == ["6.106", "6.013", "5.312", "5.292", "5.265", "3.489", "3.353", "3.004", "2.983", "2.667", "2.573"]
+    assert g["hg"][7]["lam"] == "577.0"
+    c = g["cal"]
+    assert (c["m"], c["Sx"], c["Sy"], c["Sxy"], c["Sxx"]) == (11, "46.057", "392.5", "1502.5", "212.453491")
+    assert (c["num"], c["den"]) == ("−1549.8725", "215.741152")
+    assert (c["B"], c["A"]) == ("−7.184", "65.76")  # as on the sheet
+    # λ_H = √(B/(x_H − A)) with the written A and B: exactly the sheet's Table 2
+    assert [r["lam"] for r in g["h"]] == ["681.7", "487.2", "432.2", "411.8", "398.4"]
+    assert [r["inv"] for r in g["h"]] == ["1.467", "2.053", "2.314", "2.428", "2.510"]
+    assert [r["n2"] for r in g["h"]] == ["0.1111", "0.0625", "0.04", "0.02778", "0.02041"]
+    y = g["ryd"]
+    assert (y["Sx"], y["Sy"], y["Sxy"], y["Sxx"], y["Syy"]) == ("0.26179", "10.772", "0.50253514", "0.0190377565", "23.916778")
+    assert (y["R"], y["se2"], y["sR"]) == ("11.52987", "0.000298", "0.236")
+    assert y["report"] == "(11.5 ± 0.2)·10⁶ m⁻¹" and y["report7"] == "(1.15 ± 0.02)·10⁷ m⁻¹"
+    # the written chain agrees with the full-precision fit of the Results tab
+    assert abs(mpf(y["R"]) * mpf("1e6") - val(res, "R")) < mpf("0.001") * val(res, "R")
+    # every line is reproducible: B from the written sums, A from the written B
+    assert abs((11 * mpf("1502.5") - mpf("46.057") * mpf("392.5")) / (11 * mpf("212.453491") - mpf("46.057") ** 2) - mpf("-7.184")) < mpf("0.0005")
+    assert abs((mpf("392.5") + mpf("7.184") * mpf("46.057")) / 11 - mpf("65.76")) < mpf("0.005")
+
+
+def test_exp3_sheet_partial_and_graphical():
+    p = exp3_sheet()
+    p["h"] = p["h"][:2]
+    g = run("exp3", p)["extra"]["guide"]
+    assert g["stage"] == 1 and "ryd" not in g and g["h"][1]["lam"] == "487.2"
+    p = exp3_sheet()
+    p["hg"] = p["hg"][:2]
+    r = api.dispatch("exp3.analyze", p)
+    assert r["ok"] and r["result"]["extra"]["guide"]["stage"] == 0 and len(r["result"]["extra"]["guide"]["hg"]) == 2
+    p = exp3_sheet()
+    p["graphical"] = {"cal": {"x1": "2.5", "y1": "48", "x2": "6", "y2": "22.6"},
+                      "ryd": {"x1": "0.02", "y1": "2.53", "x2": "0.11", "y2": "1.49", "max_x1": "0.02", "max_y1": "2.56", "max_x2": "0.11",
+                              "max_y2": "1.47", "min_x1": "0.02", "min_y1": "2.50", "min_x2": "0.11", "min_y2": "1.52"}}
+    g = run("exp3", p)["extra"]["guide"]
+    assert (g["cal"]["graphical"]["B"], g["cal"]["graphical"]["A"]) == ("−7.257", "66.14")
+    gr = g["ryd"]["graphical"]
+    assert (gr["R"], gr["R_max"], gr["R_min"], gr["sigma"], gr["report"]) == ("11.56", "12.11", "10.89", "0.610", "(11.6 ± 0.6)·10⁶ m⁻¹")
+    assert gr["significant"] is False
+    p["graphical"]["ryd"]["x2"] = "0.02"
+    r = api.dispatch("exp3.analyze", p)
+    assert not r["ok"] and r["error"]["field"] == "graphical.ryd.x2"

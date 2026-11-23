@@ -1,5 +1,6 @@
 import type { ExperimentDef } from "./types";
 import { LiveTable } from "../components/LiveTable";
+import { Exp3Analysis, hPanel, hgPanel, resultPanel } from "./exp3Guide";
 
 const HG = ["404.7", "407.8", "433.9", "434.7", "435.8", "535.4", "546.1", "577.0", "579.0", "612.3", "623.4"];
 const H: [string, string][] = [["Hα", "3"], ["Hβ", "4"], ["Hγ", "5"], ["Hδ", "6"], ["Hε", "7"]];
@@ -9,6 +10,7 @@ const empty = () => ({
   h: H.map(([line, n], i) => ({ id: `h${i}`, line, n, x: "" })),
   sigma_x: "0.05",
   lambda_set: "guide",
+  graphical: { cal: {}, ryd: {} },
 });
 
 export const exp3: ExperimentDef = {
@@ -59,8 +61,10 @@ export const exp3: ExperimentDef = {
       id: "hg", role: ["OP", "RD", "AN"], title: "Read the locator for each of the 11 Hg lines (Table 3.1)",
       how: "Centre each line under the reticle, always approaching from the same direction (removes backlash). RD reads mm + vernier × 0.1 mm.",
       entry: { kind: "table", table: "hg" },
+      cells: [{ name: "x_Hg", text: "the locator reading for that mercury line: main-scale mm + vernier line × 0.1 (the sheet writes it in a.u.)" }],
       decision: "If a point is more than ≈ 0.1–0.2 mm off the calibration line (flagged), re-measure it.",
       live: "plot",
+      panel: hgPanel,
     },
     {
       id: "find-h", role: ["OP"], title: "Bring the H spectrum into view with the y knob",
@@ -72,10 +76,17 @@ export const exp3: ExperimentDef = {
     {
       id: "h", role: ["OP", "RD", "AN"], title: "Read the locator for Hα … Hε (Table 3.2)",
       entry: { kind: "table", table: "h" },
+      cells: [{ name: "x_H", text: "the locator reading for that hydrogen line, read exactly like the mercury lines" }],
       decision: "If a λ_H comes out several nm from the expected value, the line is probably misidentified — check the prediction.",
       live: "check",
+      panel: hPanel,
     },
     { id: "reread", role: ["RD"], title: "Optional: a second person re-reads every line", optional: true, how: "Average the two readings before typing, or note the difference as an estimate of σ_x." },
+    {
+      id: "done", role: ["ALL"], title: "Done: check R_H, then open the step-by-step analysis", expanded: true,
+      how: "The app has already worked through the guide's §3.5–3.7 with your readings. The **Analysis** tab writes every calculation of the final sheet with your numbers: 1/λ², graph 1 and the least squares for A and B, λ_H, λ_H⁻¹ and n_i⁻², graph 2 and the least squares for R_H with its uncertainty, and the conclusions. It also does the graphical method for both graphs.",
+      panel: resultPanel,
+    },
   ],
   cheat: [
     "Mount plate, focus, lines ∥ reticle.",
@@ -83,6 +94,7 @@ export const exp3: ExperimentDef = {
     "Read all 11 Hg lines, same approach direction (backlash). mm + vernier × 0.1 mm.",
     "y knob → H spectrum. Hγ ↔ Hg 434.7. Use the app's predicted positions.",
     "Read Hα, Hβ, Hγ, Hδ, Hε.",
+    "Analysis tab: the whole sheet (two graphs, graphical method + LSM, R_H ± σ) with your numbers.",
   ],
   tables: [
     {
@@ -103,6 +115,7 @@ export const exp3: ExperimentDef = {
     { path: "lambda_set", label: "Hg wavelengths", options: [{ value: "guide", label: "Guide (Table 3.1)" }, { value: "nist", label: "NIST ASD (Advanced)" }] },
   ],
   initialData: empty,
+  analysis: Exp3Analysis,
   headline: [{ key: "R", label: "R_H" }, { key: "A", label: "Cauchy A" }, { key: "B", label: "Cauchy B" }],
   complete: (d) => d.hg.filter((r: Record<string, string>) => r.x).length >= 5 && d.h.filter((r: Record<string, string>) => r.x).length >= 3,
   livePanel: (r) =>

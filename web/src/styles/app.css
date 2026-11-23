@@ -572,6 +572,8 @@ fieldset { min-width: 0; }
 .rich-table th { color: var(--muted); font-weight: 600; font-family: var(--font-ui); }
 .rich-table.num td { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
 .rich-table tr.excluded td { text-decoration: line-through; color: var(--muted); }
+.rich-table td.cell-excluded { text-decoration: line-through; color: var(--muted); }
+.ga-formula.excluded { opacity: 0.5; }
 .th-unit { font-weight: 400; }
 .result-table { margin: var(--sp-5) 0; }
 .steps { margin: var(--sp-4) 0; }
